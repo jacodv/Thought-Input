@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.braininput.capture.data.CapturePayload
 import com.braininput.capture.data.CaptureRepository
 import com.braininput.capture.speech.SpeechRecognizerManager
@@ -37,13 +38,20 @@ class CaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Show keyboard immediately
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        // Edge-to-edge transparent overlay
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or
+            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        )
 
         repository = CaptureRepository(applicationContext)
         speechManager = SpeechRecognizerManager(this)
 
-        CaptureLog.ui("CaptureActivity created")
+        // If launched with voice mode flag (from widget mic button)
+        val startWithVoice = intent.getBooleanExtra("start_voice", false)
+
+        CaptureLog.ui("CaptureActivity created (voice=$startWithVoice)")
 
         setContent {
             BrainInputTheme {
@@ -75,12 +83,12 @@ class CaptureActivity : ComponentActivity() {
 
                             if (success) {
                                 showSuccess = true
-                                delay(400)
+                                delay(350)
                                 finish()
                             } else {
                                 isSending = false
-                                errorMessage = "Saved offline — will retry"
-                                delay(1500)
+                                errorMessage = "Saved offline"
+                                delay(1000)
                                 finish()
                             }
                         }
@@ -95,6 +103,11 @@ class CaptureActivity : ComponentActivity() {
                     onDismiss = { finish() }
                 )
             }
+        }
+
+        // Auto-start voice if launched from widget mic button
+        if (startWithVoice) {
+            requestMicAndListen()
         }
     }
 

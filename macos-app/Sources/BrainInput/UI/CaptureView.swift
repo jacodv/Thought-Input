@@ -4,61 +4,49 @@ struct CaptureView: View {
     @StateObject private var captureService = CaptureService()
     @StateObject private var speechRecognizer = SpeechRecognizer()
     @State private var text = ""
-    @State private var showSuccess = false
+    @State private var feedbackIcon: String?
     @FocusState private var isTextFieldFocused: Bool
 
     var onDismiss: (() -> Void)?
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 8) {
-                TextField("Capture a thought...", text: $text)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 16))
-                    .focused($isTextFieldFocused)
-                    .onSubmit {
-                        submitCapture()
-                    }
+        HStack(spacing: 12) {
+            // Left icon — brain/search style
+            Image(systemName: feedbackIcon ?? "brain.head.profile")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(feedbackIcon == "checkmark.circle.fill" ? .green : .secondary)
+                .frame(width: 24)
+                .animation(.easeInOut(duration: 0.2), value: feedbackIcon)
 
+            // Main text field — large, like Spotlight
+            TextField("Capture a thought...", text: $text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 22, weight: .light))
+                .focused($isTextFieldFocused)
+                .onSubmit {
+                    submitCapture()
+                }
+
+            if captureService.isSending {
+                ProgressView()
+                    .scaleEffect(0.7)
+                    .frame(width: 24)
+            } else {
+                // Mic button
                 Button(action: toggleVoice) {
                     Image(systemName: speechRecognizer.isRecording ? "mic.fill" : "mic")
+                        .font(.system(size: 18))
                         .foregroundColor(speechRecognizer.isRecording ? .red : .secondary)
-                        .font(.system(size: 16))
+                        .frame(width: 24)
                 }
                 .buttonStyle(.plain)
                 .help(speechRecognizer.isRecording ? "Stop dictation" : "Start dictation")
                 .disabled(!speechRecognizer.isAvailable)
-
-                Button(action: submitCapture) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .foregroundColor(text.isEmpty ? .secondary : .accentColor)
-                        .font(.system(size: 20))
-                }
-                .buttonStyle(.plain)
-                .disabled(text.isEmpty || captureService.isSending)
-                .help("Submit (Enter)")
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-
-            if captureService.isSending {
-                ProgressView()
-                    .scaleEffect(0.6)
-                    .frame(height: 8)
-            } else if showSuccess {
-                Label("Captured", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundColor(.green)
-                    .frame(height: 8)
-            } else if let error = captureService.lastError {
-                Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption)
-                    .foregroundColor(.orange)
-                    .frame(height: 8)
             }
         }
-        .padding(8)
-        .frame(width: 400, height: 100)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .frame(width: 680, height: 52)
         .onAppear {
             isTextFieldFocused = true
             speechRecognizer.requestAuthorization()
@@ -93,11 +81,14 @@ struct CaptureView: View {
         Task {
             let success = await captureService.submit(text: capturedText, method: method)
             if success {
-                showSuccess = true
+                feedbackIcon = "checkmark.circle.fill"
                 text = ""
-                // Brief pause to show success, then dismiss
-                try? await Task.sleep(for: .milliseconds(400))
+                try? await Task.sleep(for: .milliseconds(350))
                 dismiss()
+            } else {
+                feedbackIcon = "exclamationmark.triangle.fill"
+                try? await Task.sleep(for: .milliseconds(800))
+                feedbackIcon = nil
             }
         }
     }
@@ -105,7 +96,7 @@ struct CaptureView: View {
     private func dismiss() {
         speechRecognizer.stopRecording()
         text = ""
-        showSuccess = false
+        feedbackIcon = nil
         onDismiss?()
     }
 }

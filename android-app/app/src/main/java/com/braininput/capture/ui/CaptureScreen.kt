@@ -1,25 +1,30 @@
 package com.braininput.capture.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,9 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.braininput.capture.R
 
 @Composable
@@ -49,6 +57,16 @@ fun CaptureScreen(
     var text by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
+    // Icon color animates for feedback
+    val iconTint by animateColorAsState(
+        targetValue = when {
+            showSuccess -> Color(0xFF4CAF50)
+            errorMessage != null -> Color(0xFFFF9800)
+            else -> Color(0xFFAAAAAA)
+        },
+        label = "iconTint"
+    )
+
     LaunchedEffect(speechTranscript) {
         if (speechTranscript.isNotEmpty()) {
             text = speechTranscript
@@ -59,65 +77,111 @@ fun CaptureScreen(
         focusRequester.requestFocus()
     }
 
-    Column(
+    // Full-screen translucent scrim — tap outside to dismiss
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.4f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onDismiss() },
+        contentAlignment = Alignment.TopCenter
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+        // The capture bar — pill-shaped, like Google Search widget
+        Surface(
+            modifier = Modifier
+                .padding(top = 120.dp, start = 16.dp, end = 16.dp)
+                .fillMaxWidth()
+                .height(56.dp)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { /* consume clicks so scrim doesn't dismiss */ },
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shadowElevation = 6.dp,
+            tonalElevation = 2.dp
         ) {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text("Capture a thought...") },
-                modifier = Modifier
-                    .weight(1f)
-                    .focusRequester(focusRequester),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        if (text.isNotBlank()) onSubmit(text)
-                    }
-                )
-            )
-
-            IconButton(
-                onClick = onToggleVoice,
-                enabled = speechAvailable
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 20.dp)
             ) {
+                // Left icon — brain/status indicator
                 Icon(
                     painter = painterResource(
-                        id = if (isRecording) R.drawable.ic_mic_active else R.drawable.ic_mic
+                        id = when {
+                            showSuccess -> R.drawable.ic_check
+                            else -> R.drawable.ic_brain
+                        }
                     ),
-                    contentDescription = if (isRecording) "Stop dictation" else "Start dictation",
-                    tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.onSurface
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(24.dp)
                 )
-            }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AnimatedVisibility(visible = isSending) {
-                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-            }
-            AnimatedVisibility(visible = showSuccess) {
-                Text("Captured!", color = Color(0xFF4CAF50), style = MaterialTheme.typography.labelSmall)
-            }
-            AnimatedVisibility(visible = errorMessage != null) {
-                Text(
-                    errorMessage ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall
+                // Text input — no border, large font
+                BasicTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester),
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            if (text.isNotBlank()) onSubmit(text)
+                        }
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (text.isEmpty()) {
+                                Text(
+                                    "Capture a thought...",
+                                    style = TextStyle(
+                                        fontSize = 18.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Right side — mic or progress
+                if (isSending) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    IconButton(
+                        onClick = onToggleVoice,
+                        enabled = speechAvailable,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (isRecording) R.drawable.ic_mic_active else R.drawable.ic_mic
+                            ),
+                            contentDescription = if (isRecording) "Stop dictation" else "Start dictation",
+                            tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
         }
     }

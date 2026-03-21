@@ -10,4 +10,11 @@ final class CaptureViewController: NSHostingController<CaptureView> {
         self.init(rootView: captureView)
         self.onDismiss = onDismiss
     }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Transparent background so the NSVisualEffectView vibrancy shows through
+        view.wantsLayer = true
+        view.layer?.backgroundColor = .clear
+    }
 }

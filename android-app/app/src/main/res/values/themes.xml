@@ -3,11 +3,15 @@
     <style name="Theme.BrainInput" parent="android:Theme.Material.Light.NoActionBar">
     </style>
 
-    <!-- Dialog-style theme for capture activity -->
-    <style name="Theme.BrainInput.Capture" parent="android:Theme.Material.Light.Dialog">
+    <!-- Transparent overlay theme for capture activity (Spotlight/Google Search style) -->
+    <style name="Theme.BrainInput.Capture" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowCloseOnTouchOutside">true</item>
-        <item name="android:windowSoftInputMode">stateAlwaysVisible</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowSoftInputMode">stateAlwaysVisible|adjustResize</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Toast</item>
     </style>
 </resources>

@@ -5,4 +5,5 @@
     <string name="capture_hint">Capture a thought…</string>
     <string name="mic_start">Start dictation</string>
     <string name="mic_stop">Stop dictation</string>
+    <string name="widget_description">Quick capture bar — tap to type, mic to dictate</string>
 </resources>
