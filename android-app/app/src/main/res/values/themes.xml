@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.BrainInput" parent="android:Theme.Material.Light.NoActionBar">
+    </style>
+
+    <!-- Dialog-style theme for capture activity -->
+    <style name="Theme.BrainInput.Capture" parent="android:Theme.Material.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:windowSoftInputMode">stateAlwaysVisible</item>
+    </style>
+</resources>
