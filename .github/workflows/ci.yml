@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/*"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos-app:
+    name: macOS (Build + Test)
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: macos-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache SPM
+        uses: actions/cache@v4
+        with:
+          path: macos-app/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('macos-app/Package.swift') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Swift version
+        run: swift --version
+
+      - name: Build (debug)
+        run: swift build
+
+      - name: Run tests
+        run: swift test --verbose
+
+      - name: Build (release)
+        run: swift build -c release
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: thought-input-macos-release
+          path: macos-app/.build/release/ThoughtInput
+
+  android-app:
+    name: Android (Build + Test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: thought-input-android-debug
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-results
+          path: android-app/app/build/reports/tests/

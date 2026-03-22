@@ -1,6 +1,7 @@
 import Cocoa
 import Carbon.HIToolbox
 
+@MainActor
 final class GlobalShortcutManager {
     static let shared = GlobalShortcutManager()
 

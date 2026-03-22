@@ -10,6 +10,9 @@ let package = Package(
         .executableTarget(
             name: "ThoughtInput",
             path: "Sources/ThoughtInput",
+            exclude: [
+                "Resources/Info.plist"
+            ],
             resources: [
                 .process("Resources")
             ]
