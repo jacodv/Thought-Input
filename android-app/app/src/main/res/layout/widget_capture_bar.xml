@@ -36,6 +36,6 @@
         android:padding="8dp"
         android:src="@drawable/ic_mic"
         android:contentDescription="@string/mic_start"
-        android:background="?attr/selectableItemBackgroundBorderless" />
+        android:background="?android:attr/selectableItemBackgroundBorderless" />
 
 </LinearLayout>
