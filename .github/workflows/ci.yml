@@ -72,10 +72,12 @@ jobs:
         run: ./gradlew testDebugUnitTest
 
       - name: Upload debug APK
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: thought-input-android-debug
           path: android-app/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: ignore
 
       - name: Upload test results
         if: always()
