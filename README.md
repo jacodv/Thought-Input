@@ -1,4 +1,4 @@
-# Brain Input — Instant Capture
+# Thought Input — Instant Capture
 
 Ultra-fast note capture from anywhere. Summon a tiny text input, type or dictate, submit. Under two seconds.
 
@@ -25,7 +25,7 @@ android-app/                 # Native Android app (Kotlin)
 - macOS 15.0+
 
 ### Build
-Open `macos-app/BrainInput.xcodeproj` in Xcode and build, or:
+Open `macos-app/ThoughtInput.xcodeproj` in Xcode and build, or:
 ```bash
 cd macos-app
 swift build

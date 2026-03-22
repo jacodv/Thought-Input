@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Brain Input</string>
+    <string name="app_name">Thought Input</string>
     <string name="tile_label">Capture</string>
     <string name="capture_hint">Capture a thought…</string>
     <string name="mic_start">Start dictation</string>

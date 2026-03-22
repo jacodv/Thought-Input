@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.BrainInput" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.ThoughtInput" parent="android:Theme.Material.Light.NoActionBar">
     </style>
 
     <!-- Transparent overlay theme for capture activity (Spotlight/Google Search style) -->
-    <style name="Theme.BrainInput.Capture" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.ThoughtInput.Capture" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>

@@ -13,5 +13,5 @@ dependencyResolution {
     }
 }
 
-rootProject.name = "BrainInput"
+rootProject.name = "ThoughtInput"
 include(":app")

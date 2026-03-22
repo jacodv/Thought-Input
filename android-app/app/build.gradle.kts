@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.braininput.capture"
+    namespace = "com.thoughtinput.capture"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.braininput.capture"
+        applicationId = "com.thoughtinput.capture"
         minSdk = 29
         targetSdk = 35
         versionCode = 1

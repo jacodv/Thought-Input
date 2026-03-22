@@ -2,22 +2,22 @@
 import PackageDescription
 
 let package = Package(
-    name: "BrainInput",
+    name: "ThoughtInput",
     platforms: [
         .macOS(.v15)
     ],
     targets: [
         .executableTarget(
-            name: "BrainInput",
-            path: "Sources/BrainInput",
+            name: "ThoughtInput",
+            path: "Sources/ThoughtInput",
             resources: [
                 .process("Resources")
             ]
         ),
         .testTarget(
-            name: "BrainInputTests",
-            dependencies: ["BrainInput"],
-            path: "Tests/BrainInputTests"
+            name: "ThoughtInputTests",
+            dependencies: ["ThoughtInput"],
+            path: "Tests/ThoughtInputTests"
         )
     ]
 )

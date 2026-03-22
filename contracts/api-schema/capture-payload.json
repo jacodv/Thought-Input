@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "CapturePayload",
-  "description": "Payload sent by Brain Input clients when a capture is submitted.",
+  "description": "Payload sent by Thought Input clients when a capture is submitted.",
   "type": "object",
   "required": ["text", "timestamp", "source_platform", "client_version", "capture_method", "idempotency_key"],
   "properties": {
