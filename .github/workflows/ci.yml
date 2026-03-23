@@ -39,11 +39,41 @@ jobs:
       - name: Build (release)
         run: swift build -c release
 
-      - name: Upload macOS binary
+      - name: Package .app bundle
+        run: |
+          APP="ThoughtInput.app/Contents"
+          mkdir -p "$APP/MacOS" "$APP/Resources"
+
+          # Copy binary
+          cp .build/release/ThoughtInput "$APP/MacOS/ThoughtInput"
+
+          # Copy Info.plist
+          cp Sources/ThoughtInput/Resources/Info.plist "$APP/Info.plist"
+
+          # Compile asset catalog (produces Assets.car + AppIcon.icns)
+          xcrun actool Sources/ThoughtInput/Resources/Assets.xcassets \
+            --compile "$APP/Resources" \
+            --platform macosx \
+            --minimum-deployment-target 15.0 \
+            --app-icon AppIcon \
+            --output-partial-info-plist /dev/null
+
+          # Copy SPM-bundled resources (compiled resource bundle)
+          if [ -d .build/release/ThoughtInput_ThoughtInput.bundle ]; then
+            cp -R .build/release/ThoughtInput_ThoughtInput.bundle "$APP/Resources/"
+          fi
+
+          # Create PkgInfo
+          echo -n "APPL????" > "$APP/PkgInfo"
+
+          # Zip for upload
+          ditto -c -k --keepParent ThoughtInput.app ThoughtInput.app.zip
+
+      - name: Upload macOS app
         uses: actions/upload-artifact@v7
         with:
           name: thought-input-macos-release
-          path: macos-app/.build/release/ThoughtInput
+          path: macos-app/ThoughtInput.app.zip
 
   android-app:
     name: Android (Build + Test)
