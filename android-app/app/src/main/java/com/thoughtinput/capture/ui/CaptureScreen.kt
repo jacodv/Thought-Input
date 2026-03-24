@@ -7,11 +7,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -77,21 +80,24 @@ fun CaptureScreen(
         focusRequester.requestFocus()
     }
 
+    // Status bar height so we can position the bar right below it (matching widget)
+    val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
     // Full-screen translucent scrim — tap outside to dismiss
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f))
+            .background(Color.Black.copy(alpha = 0.55f))
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onDismiss() },
         contentAlignment = Alignment.TopCenter
     ) {
-        // The capture bar — pill-shaped, like Google Search widget
+        // The capture bar — pill-shaped, positioned to overlap the widget
         Surface(
             modifier = Modifier
-                .padding(top = 120.dp, start = 16.dp, end = 16.dp)
+                .padding(top = statusBarPadding + 16.dp, start = 16.dp, end = 16.dp)
                 .fillMaxWidth()
                 .height(56.dp)
                 .clickable(
