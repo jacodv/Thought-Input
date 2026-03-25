@@ -1,6 +1,6 @@
 import Foundation
 
-@MainActor final class PendingCaptureStore {
+final class PendingCaptureStore: Sendable {
     private let directory: URL
 
     init() {
