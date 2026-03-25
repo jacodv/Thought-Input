@@ -14,8 +14,8 @@ final class SpeechRecognizer: ObservableObject {
     private lazy var speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
 
     func requestAuthorization() {
-        SFSpeechRecognizer.requestAuthorization { [weak self] status in
-            Task { @MainActor in
+        SFSpeechRecognizer.requestAuthorization { status in
+            DispatchQueue.main.async { [weak self] in
                 self?.isAvailable = (status == .authorized)
                 CaptureLog.speech.info("Speech authorization status: \(String(describing: status))")
             }
@@ -51,8 +51,8 @@ final class SpeechRecognizer: ObservableObject {
             return
         }
 
-        recognitionTask = speechRecognizer.recognitionTask(with: request) { [weak self] result, error in
-            Task { @MainActor in
+        recognitionTask = speechRecognizer.recognitionTask(with: request) { result, error in
+            DispatchQueue.main.async { [weak self] in
                 if let result {
                     self?.transcript = result.bestTranscription.formattedString
                 }
