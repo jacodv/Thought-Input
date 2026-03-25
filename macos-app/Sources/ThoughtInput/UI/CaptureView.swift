@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CaptureView: View {
-    @StateObject private var captureService = CaptureService()
+    @ObservedObject private var captureService = CaptureService.shared
     @StateObject private var speechRecognizer = SpeechRecognizer()
     @State private var text = ""
     @State private var feedbackIcon: String?

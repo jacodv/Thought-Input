@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.net.URL
 
 @Composable
 fun SettingsScreen(
@@ -43,6 +44,8 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        val isInvalid = endpoint.isNotBlank() && !isValidEndpoint(endpoint)
+
         OutlinedTextField(
             value = endpoint,
             onValueChange = {
@@ -52,16 +55,25 @@ fun SettingsScreen(
             label = { Text("Endpoint URL") },
             placeholder = { Text("https://api.example.com/capture") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            isError = isInvalid
         )
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = "POST requests with JSON payload will be sent to this URL.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (isInvalid) {
+            Text(
+                text = "Invalid URL. Must start with http:// or https://",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        } else {
+            Text(
+                text = "POST requests with JSON payload will be sent to this URL.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -77,5 +89,14 @@ fun SettingsScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+private fun isValidEndpoint(urlString: String): Boolean {
+    return try {
+        val url = URL(urlString)
+        url.protocol in listOf("http", "https") && url.host.isNotBlank()
+    } catch (e: Exception) {
+        false
     }
 }

@@ -45,7 +45,7 @@ data class CapturePayload(
                 timestamp = obj.getString("timestamp"),
                 sourcePlatform = obj.getString("source_platform"),
                 clientVersion = obj.getString("client_version"),
-                captureMethod = CaptureMethod.entries.first { it.value == obj.getString("capture_method") }
+                captureMethod = CaptureMethod.entries.firstOrNull { it.value == obj.getString("capture_method") }
                     ?: CaptureMethod.TYPED,
                 idempotencyKey = obj.getString("idempotency_key")
             )

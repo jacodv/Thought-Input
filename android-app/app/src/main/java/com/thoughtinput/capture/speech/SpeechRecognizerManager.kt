@@ -42,7 +42,15 @@ class SpeechRecognizerManager(private val context: Context) {
                 }
 
                 override fun onError(error: Int) {
-                    CaptureLog.speech("Speech error: $error")
+                    val message = when (error) {
+                        SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                        SpeechRecognizer.ERROR_NETWORK -> "Network error during speech recognition"
+                        SpeechRecognizer.ERROR_NO_MATCH -> "No speech detected"
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission required"
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Speech timeout"
+                        else -> "Speech recognition error (code $error)"
+                    }
+                    CaptureLog.error("Speech", message)
                     _isRecording.value = false
                 }
 

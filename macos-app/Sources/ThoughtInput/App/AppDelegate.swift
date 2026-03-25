@@ -92,8 +92,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func retryPendingCaptures() {
         Task {
-            let service = CaptureService()
-            await service.retryPending()
+            await CaptureService.shared.retryPending()
         }
     }
 }

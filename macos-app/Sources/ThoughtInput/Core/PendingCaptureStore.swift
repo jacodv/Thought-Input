@@ -1,6 +1,6 @@
 import Foundation
 
-final class PendingCaptureStore: Sendable {
+@MainActor final class PendingCaptureStore {
     private let directory: URL
 
     init() {
@@ -9,14 +9,17 @@ final class PendingCaptureStore: Sendable {
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
-    func save(_ payload: CapturePayload) {
+    @discardableResult
+    func save(_ payload: CapturePayload) -> Bool {
         let file = directory.appendingPathComponent("\(payload.idempotencyKey).json")
         do {
             let data = try JSONEncoder().encode(payload)
             try data.write(to: file, options: .atomic)
             CaptureLog.store.info("Saved pending capture: \(payload.idempotencyKey)")
+            return true
         } catch {
             CaptureLog.store.error("Failed to save pending capture: \(error.localizedDescription)")
+            return false
         }
     }
 

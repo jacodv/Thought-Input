@@ -2,6 +2,8 @@ import Foundation
 
 @MainActor
 final class CaptureService: ObservableObject {
+    static let shared = CaptureService()
+
     @Published var isSending = false
     @Published var lastError: String?
 
@@ -15,9 +17,12 @@ final class CaptureService: ObservableObject {
         defer { isSending = false }
 
         guard let url = apiEndpointURL() else {
-            lastError = "No API endpoint configured"
             CaptureLog.network.error("No API endpoint configured")
-            pendingStore.save(payload)
+            if !pendingStore.save(payload) {
+                lastError = "Failed to save capture offline"
+            } else {
+                lastError = "No API endpoint configured"
+            }
             return false
         }
 
@@ -27,14 +32,23 @@ final class CaptureService: ObservableObject {
             return true
         } catch {
             CaptureLog.network.error("Capture failed: \(error.localizedDescription)")
-            lastError = error.localizedDescription
-            pendingStore.save(payload)
+            if !pendingStore.save(payload) {
+                lastError = "Failed to save capture offline"
+            } else {
+                lastError = error.localizedDescription
+            }
             return false
         }
     }
 
     func retryPending() async {
-        guard let url = apiEndpointURL() else { return }
+        guard let url = apiEndpointURL() else {
+            let count = pendingStore.pendingCount
+            if count > 0 {
+                CaptureLog.network.warning("Cannot retry \(count) pending captures: no API endpoint configured")
+            }
+            return
+        }
         let pending = pendingStore.loadAll()
         for payload in pending {
             do {
@@ -68,7 +82,11 @@ final class CaptureService: ObservableObject {
               !urlString.isEmpty else {
             return nil
         }
-        return URL(string: urlString)
+        guard let url = URL(string: urlString) else {
+            CaptureLog.network.error("Invalid API endpoint URL: \(urlString)")
+            return nil
+        }
+        return url
     }
 }
 

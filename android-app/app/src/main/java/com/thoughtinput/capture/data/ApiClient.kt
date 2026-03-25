@@ -39,8 +39,8 @@ class ApiClient {
                 CaptureLog.network("Server returned $statusCode for ${payload.idempotencyKey}")
                 Result.Error("Server returned $statusCode", statusCode)
             }
-        } catch (e: Exception) {
-            CaptureLog.network("Network error: ${e.message}")
+        } catch (e: java.io.IOException) {
+            CaptureLog.error("Network", "Network error: ${e.message}", e)
             Result.Error(e.message ?: "Unknown network error")
         }
     }

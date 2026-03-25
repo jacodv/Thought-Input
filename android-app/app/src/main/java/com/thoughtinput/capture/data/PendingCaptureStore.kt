@@ -8,13 +8,15 @@ class PendingCaptureStore(context: Context) {
 
     private val pendingDir = File(context.filesDir, "pending_captures").apply { mkdirs() }
 
-    fun save(payload: CapturePayload) {
-        try {
+    fun save(payload: CapturePayload): Boolean {
+        return try {
             val file = File(pendingDir, "${payload.idempotencyKey}.json")
             file.writeText(payload.toJson())
             CaptureLog.store("Saved pending capture: ${payload.idempotencyKey}")
-        } catch (e: Exception) {
-            CaptureLog.store("Failed to save pending: ${e.message}")
+            true
+        } catch (e: java.io.IOException) {
+            CaptureLog.error("Store", "Failed to save pending: ${e.message}", e)
+            false
         }
     }
 
@@ -36,7 +38,10 @@ class PendingCaptureStore(context: Context) {
     }
 
     fun remove(idempotencyKey: String) {
-        File(pendingDir, "$idempotencyKey.json").delete()
+        val file = File(pendingDir, "$idempotencyKey.json")
+        if (!file.delete()) {
+            CaptureLog.error("Store", "Failed to delete pending capture: ${file.name}")
+        }
     }
 
     val pendingCount: Int
