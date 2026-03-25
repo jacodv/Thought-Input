@@ -23,12 +23,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Menu Bar
 
     private func setupMenuBar() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "brain.head.profile", accessibilityDescription: "Thought Input")
-            button.action = #selector(toggleCapture)
-            button.target = self
+            if let image = NSImage(systemSymbolName: "brain.head.profile", accessibilityDescription: "Thought Input") {
+                button.image = image
+            } else {
+                button.title = "💭"
+            }
         }
 
         let menu = NSMenu()
