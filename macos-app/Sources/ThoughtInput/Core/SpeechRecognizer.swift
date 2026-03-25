@@ -14,12 +14,16 @@ final class SpeechRecognizer: ObservableObject {
     private lazy var speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
 
     func requestAuthorization() {
-        SFSpeechRecognizer.requestAuthorization { status in
-            DispatchQueue.main.async { [weak self] in
-                self?.isAvailable = (status == .authorized)
-                CaptureLog.speech.info("Speech authorization status: \(String(describing: status))")
-            }
+        let currentStatus = SFSpeechRecognizer.authorizationStatus()
+        if currentStatus == .authorized {
+            isAvailable = speechRecognizer?.isAvailable ?? false
+        } else if currentStatus == .notDetermined {
+            SFSpeechRecognizer.requestAuthorization { _ in }
+            // Will be checked again on next onAppear
+        } else {
+            isAvailable = false
         }
+        CaptureLog.speech.info("Speech authorization status: \(String(describing: currentStatus))")
     }
 
     func startRecording() {
