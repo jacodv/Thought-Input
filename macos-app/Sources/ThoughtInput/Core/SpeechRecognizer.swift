@@ -11,11 +11,7 @@ final class SpeechRecognizer: ObservableObject {
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private let audioEngine = AVAudioEngine()
-    private let speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
-
-    init() {
-        isAvailable = speechRecognizer?.isAvailable ?? false
-    }
+    private lazy var speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
 
     func requestAuthorization() {
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
