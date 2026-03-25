@@ -1,6 +1,7 @@
 import XCTest
 @testable import ThoughtInput
 
+@MainActor
 final class PendingCaptureStoreTests: XCTestCase {
 
     private var store: PendingCaptureStore!
