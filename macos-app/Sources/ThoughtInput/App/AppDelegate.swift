@@ -51,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.capturePanel.dismissCapture()
         }
         capturePanel.contentViewController = viewController
+        capturePanel.applyVisualStyle()
     }
 
     @objc private func toggleCapture() {

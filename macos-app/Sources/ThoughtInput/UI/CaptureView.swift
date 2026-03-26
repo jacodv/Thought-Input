@@ -19,7 +19,7 @@ struct CaptureView: View {
                 .animation(.easeInOut(duration: 0.2), value: feedbackIcon)
 
             // Main text field — large, like Spotlight
-            TextField("Capture a thought...", text: $text)
+            TextField("Type or speak a thought...", text: $text)
                 .textFieldStyle(.plain)
                 .font(.system(size: 22, weight: .light))
                 .focused($isTextFieldFocused)
@@ -43,10 +43,21 @@ struct CaptureView: View {
                 .help(speechRecognizer.isRecording ? "Stop dictation" : "Start dictation")
                 .disabled(!speechRecognizer.isAvailable)
             }
+
+            // Close button
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 16, height: 16)
+            }
+            .buttonStyle(.plain)
+            .help("Close")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
         .frame(width: 680, height: 52)
+        .contentShape(Rectangle())
         .onAppear {
             isTextFieldFocused = true
             speechRecognizer.requestAuthorization()

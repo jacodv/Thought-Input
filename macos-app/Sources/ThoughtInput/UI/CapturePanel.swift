@@ -24,6 +24,8 @@ final class CapturePanel: NSPanel {
 
         // Allow the panel to become key so the text field receives keyboard input
         becomesKeyOnlyIfNeeded = false
+        ignoresMouseEvents = false
+        acceptsMouseMovedEvents = true
 
         // Rounded corners with vibrancy (Spotlight-like)
         vibrancyView.frame = contentView!.bounds
@@ -38,9 +40,28 @@ final class CapturePanel: NSPanel {
         contentView?.addSubview(vibrancyView, positioned: .below, relativeTo: nil)
         contentView?.wantsLayer = true
         contentView?.layer?.cornerRadius = 12
-        contentView?.layer?.masksToBounds = true
+        contentView?.layer?.masksToBounds = false
 
         centerOnScreen()
+    }
+
+    /// Call after contentViewController is set, since that replaces the contentView
+    func applyVisualStyle() {
+        vibrancyView.frame = contentView!.bounds
+        contentView?.addSubview(vibrancyView, positioned: .below, relativeTo: nil)
+        contentView?.wantsLayer = true
+        contentView?.layer?.cornerRadius = 12
+        contentView?.layer?.masksToBounds = false
+
+        // Theme-aware border and background
+        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        contentView?.layer?.borderWidth = 1
+        contentView?.layer?.borderColor = isDark
+            ? NSColor.white.withAlphaComponent(0.2).cgColor
+            : NSColor.black.withAlphaComponent(0.15).cgColor
+        contentView?.layer?.backgroundColor = isDark
+            ? NSColor.black.withAlphaComponent(0.85).cgColor
+            : NSColor.white.withAlphaComponent(0.85).cgColor
     }
 
     override var canBecomeKey: Bool { true }
