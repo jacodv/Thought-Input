@@ -12,25 +12,26 @@ class CapturePayloadTest {
 
     @Test
     fun `create typed payload has correct fields`() {
-        val payload = CapturePayload.create("Hello world", CapturePayload.CaptureMethod.TYPED)
+        val payload = CapturePayload.create("Hello world", CapturePayload.CaptureMethod.TYPED, deviceName = "Test Device")
 
         assertEquals("Hello world", payload.text)
         assertEquals("android", payload.sourcePlatform)
         assertEquals("typed", payload.captureMethod.value)
         assertTrue(payload.idempotencyKey.isNotEmpty())
         assertTrue(payload.timestamp.isNotEmpty())
+        assertEquals("Test Device", payload.deviceName)
     }
 
     @Test
     fun `create voice payload has correct method`() {
-        val payload = CapturePayload.create("Voice note", CapturePayload.CaptureMethod.VOICE)
+        val payload = CapturePayload.create("Voice note", CapturePayload.CaptureMethod.VOICE, deviceName = "Test Device")
 
         assertEquals("voice", payload.captureMethod.value)
     }
 
     @Test
     fun `toJson produces valid JSON with snake_case keys`() {
-        val payload = CapturePayload.create("JSON test", CapturePayload.CaptureMethod.TYPED)
+        val payload = CapturePayload.create("JSON test", CapturePayload.CaptureMethod.TYPED, deviceName = "Test Device")
         val json = JSONObject(payload.toJson())
 
         assertEquals("JSON test", json.getString("text"))
@@ -39,11 +40,12 @@ class CapturePayloadTest {
         assertEquals("typed", json.getString("capture_method"))
         assertNotNull(json.getString("idempotency_key"))
         assertNotNull(json.getString("timestamp"))
+        assertEquals("Test Device", json.getString("device_name"))
     }
 
     @Test
     fun `fromJson round-trips correctly`() {
-        val original = CapturePayload.create("Round trip", CapturePayload.CaptureMethod.VOICE)
+        val original = CapturePayload.create("Round trip", CapturePayload.CaptureMethod.VOICE, deviceName = "Test Device")
         val json = original.toJson()
         val restored = CapturePayload.fromJson(json)
 
@@ -52,12 +54,13 @@ class CapturePayloadTest {
         assertEquals(original.captureMethod, restored.captureMethod)
         assertEquals(original.idempotencyKey, restored.idempotencyKey)
         assertEquals(original.timestamp, restored.timestamp)
+        assertEquals(original.deviceName, restored.deviceName)
     }
 
     @Test
     fun `idempotency keys are unique`() {
-        val payload1 = CapturePayload.create("First", CapturePayload.CaptureMethod.TYPED)
-        val payload2 = CapturePayload.create("Second", CapturePayload.CaptureMethod.TYPED)
+        val payload1 = CapturePayload.create("First", CapturePayload.CaptureMethod.TYPED, deviceName = "Test Device")
+        val payload2 = CapturePayload.create("Second", CapturePayload.CaptureMethod.TYPED, deviceName = "Test Device")
 
         assertNotEquals(payload1.idempotencyKey, payload2.idempotencyKey)
     }

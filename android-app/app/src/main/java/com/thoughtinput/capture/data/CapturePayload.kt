@@ -1,5 +1,6 @@
 package com.thoughtinput.capture.data
 
+import android.os.Build
 import org.json.JSONObject
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -11,7 +12,8 @@ data class CapturePayload(
     val sourcePlatform: String = "android",
     val clientVersion: String = "0.1.0",
     val captureMethod: CaptureMethod,
-    val idempotencyKey: String = UUID.randomUUID().toString()
+    val idempotencyKey: String = UUID.randomUUID().toString(),
+    val deviceName: String = Build.MODEL
 ) {
     enum class CaptureMethod(val value: String) {
         TYPED("typed"),
@@ -26,15 +28,21 @@ data class CapturePayload(
             put("client_version", clientVersion)
             put("capture_method", captureMethod.value)
             put("idempotency_key", idempotencyKey)
+            put("device_name", deviceName)
         }.toString()
     }
 
     companion object {
-        fun create(text: String, method: CaptureMethod): CapturePayload {
+        fun create(
+            text: String,
+            method: CaptureMethod,
+            deviceName: String = Build.MODEL
+        ): CapturePayload {
             return CapturePayload(
                 text = text,
                 timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now()),
-                captureMethod = method
+                captureMethod = method,
+                deviceName = deviceName
             )
         }
 
@@ -47,7 +55,8 @@ data class CapturePayload(
                 clientVersion = obj.getString("client_version"),
                 captureMethod = CaptureMethod.entries.firstOrNull { it.value == obj.getString("capture_method") }
                     ?: CaptureMethod.TYPED,
-                idempotencyKey = obj.getString("idempotency_key")
+                idempotencyKey = obj.getString("idempotency_key"),
+                deviceName = obj.getString("device_name")
             )
         }
     }

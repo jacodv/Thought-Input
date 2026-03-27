@@ -76,18 +76,6 @@ struct DestinationEditorView: View {
                     oauthClientCredentialsSection
                 }
 
-                if let testResult {
-                    Section {
-                        switch testResult {
-                        case .success:
-                            Label("Connection successful", systemImage: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        case .failure(let message):
-                            Label(message, systemImage: "xmark.circle.fill")
-                                .foregroundColor(.red)
-                        }
-                    }
-                }
             }
             .formStyle(.grouped)
 
@@ -102,6 +90,21 @@ struct DestinationEditorView: View {
                 if isTesting {
                     ProgressView()
                         .controlSize(.small)
+                }
+
+                if let testResult {
+                    switch testResult {
+                    case .success:
+                        Label("Connection successful", systemImage: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.caption)
+                    case .failure(let message):
+                        Label(message, systemImage: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
                 }
 
                 Spacer()

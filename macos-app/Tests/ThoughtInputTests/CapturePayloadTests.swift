@@ -11,6 +11,7 @@ final class CapturePayloadTests: XCTestCase {
         XCTAssertEqual(payload.captureMethod, .typed)
         XCTAssertFalse(payload.idempotencyKey.isEmpty)
         XCTAssertFalse(payload.timestamp.isEmpty)
+        XCTAssertFalse(payload.deviceName.isEmpty)
     }
 
     func testCreateVoicePayload() throws {
@@ -30,6 +31,7 @@ final class CapturePayloadTests: XCTestCase {
         XCTAssertEqual(decoded.captureMethod, payload.captureMethod)
         XCTAssertEqual(decoded.idempotencyKey, payload.idempotencyKey)
         XCTAssertEqual(decoded.timestamp, payload.timestamp)
+        XCTAssertEqual(decoded.deviceName, payload.deviceName)
     }
 
     func testPayloadJsonKeys() throws {
@@ -44,6 +46,7 @@ final class CapturePayloadTests: XCTestCase {
         XCTAssertNotNil(json["idempotency_key"])
         XCTAssertNotNil(json["text"])
         XCTAssertNotNil(json["timestamp"])
+        XCTAssertNotNil(json["device_name"])
     }
 
     func testIdempotencyKeyUniqueness() {

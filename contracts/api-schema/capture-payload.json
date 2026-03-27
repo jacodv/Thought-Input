@@ -3,7 +3,7 @@
   "title": "CapturePayload",
   "description": "Payload sent by Thought Input clients when a capture is submitted.",
   "type": "object",
-  "required": ["text", "timestamp", "source_platform", "client_version", "capture_method", "idempotency_key"],
+  "required": ["text", "timestamp", "source_platform", "client_version", "capture_method", "idempotency_key", "device_name"],
   "properties": {
     "text": {
       "type": "string",
@@ -34,6 +34,11 @@
       "type": "string",
       "format": "uuid",
       "description": "UUID for deduplication on the server side."
+    },
+    "device_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name of the device (e.g. \"Jaco's MacBook Pro\", \"Pixel 9\")."
     }
   },
   "additionalProperties": false

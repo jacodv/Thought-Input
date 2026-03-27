@@ -109,6 +109,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             capturePanel?.dismissCapture()
         }
 
+        // Temporarily become a regular app so we can properly claim keyboard focus.
+        // Without this, keystrokes leak to the previously active app (e.g. Terminal).
+        NSApp.setActivationPolicy(.regular)
+
         // Reuse existing window if it's still around
         if let window = settingsWindow {
             CaptureLog.debug("ui", "Reusing existing settings window")
@@ -124,7 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Thought Input Settings"
         window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 500, height: 450))
+        window.setContentSize(NSSize(width: 500, height: 520))
         window.center()
         window.isReleasedWhenClosed = false
         window.delegate = self
@@ -139,6 +143,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if (notification.object as? NSWindow) === settingsWindow {
             CaptureLog.debug("ui", "Settings window closed")
             settingsWindow = nil
+            // Return to menu-bar-only mode
+            NSApp.setActivationPolicy(.accessory)
         }
     }
 
