@@ -6,9 +6,9 @@ struct ThoughtInputApp: App {
 
     var body: some Scene {
         // No main window — this is a menu bar app.
-        // The capture panel and settings are managed by AppDelegate.
+        // The capture panel and settings window are managed by AppDelegate.
         Settings {
-            SettingsView()
+            EmptyView()
         }
     }
 }

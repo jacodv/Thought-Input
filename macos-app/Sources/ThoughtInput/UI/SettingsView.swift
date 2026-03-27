@@ -1,23 +1,16 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("apiEndpoint") private var apiEndpoint = ""
+    @ObservedObject private var store = DestinationStore.shared
     @AppStorage("shortcutDisplay") private var shortcutDisplay = "⌘⇧Space"
 
     var body: some View {
         Form {
-            Section("API Configuration") {
-                TextField("Endpoint URL", text: $apiEndpoint)
-                    .textFieldStyle(.roundedBorder)
-                if !apiEndpoint.isEmpty && !isValidEndpoint(apiEndpoint) {
-                    Text("Invalid URL. Must start with http:// or https://")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                } else {
-                    Text("POST requests with JSON payload will be sent to this URL.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            Section("Destinations") {
+                DestinationListView(store: store)
+            }
+            .onAppear {
+                CaptureLog.debug("ui", "SettingsView appeared, destinations=\(store.destinations.count)")
             }
 
             Section("Keyboard Shortcut") {
@@ -40,16 +33,6 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 300)
-    }
-
-    private func isValidEndpoint(_ urlString: String) -> Bool {
-        guard let url = URL(string: urlString),
-              let scheme = url.scheme?.lowercased(),
-              (scheme == "http" || scheme == "https"),
-              url.host != nil else {
-            return false
-        }
-        return true
+        .frame(width: 500, height: 450)
     }
 }

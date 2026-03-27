@@ -8,31 +8,35 @@ final class CaptureService: ObservableObject {
     @Published var lastError: String?
 
     private let pendingStore = PendingCaptureStore()
+    private let tokenManager = OAuthTokenManager.shared
 
     func submit(text: String, method: CapturePayload.CaptureMethod) async -> Bool {
+        CaptureLog.debug("network", "submit called: method=\(method), textLength=\(text.count)")
         let payload = CapturePayload.create(text: text, method: method)
         isSending = true
         lastError = nil
 
         defer { isSending = false }
 
-        guard let url = apiEndpointURL() else {
-            CaptureLog.network.error("No API endpoint configured")
-            if !pendingStore.save(payload) {
-                lastError = "Failed to save capture offline"
-            } else {
-                lastError = "No API endpoint configured"
-            }
+        guard let destination = DestinationStore.shared.activeDestination else {
+            CaptureLog.network.error("No active destination configured")
+            let saved = pendingStore.save(PendingCapture(
+                payload: payload,
+                destinationID: UUID(),
+                destinationSnapshot: Destination(name: "None", isActive: false, type: .restNoAuth(RESTNoAuthConfig(endpointURL: "")))
+            ))
+            lastError = saved ? "No destination configured" : "Failed to save capture offline"
             return false
         }
 
         do {
-            try await send(payload: payload, to: url)
+            try await DestinationSender.send(payload: payload, destination: destination, tokenManager: tokenManager)
             CaptureLog.network.info("Capture submitted: \(payload.idempotencyKey)")
             return true
         } catch {
             CaptureLog.network.error("Capture failed: \(error.localizedDescription)")
-            if !pendingStore.save(payload) {
+            let pending = PendingCapture(payload: payload, destinationID: destination.id, destinationSnapshot: destination)
+            if !pendingStore.save(pending) {
                 lastError = "Failed to save capture offline"
             } else {
                 lastError = error.localizedDescription
@@ -42,51 +46,34 @@ final class CaptureService: ObservableObject {
     }
 
     func retryPending() async {
-        guard let url = apiEndpointURL() else {
-            let count = pendingStore.pendingCount
-            if count > 0 {
-                CaptureLog.network.warning("Cannot retry \(count) pending captures: no API endpoint configured")
-            }
-            return
-        }
         let pending = pendingStore.loadAll()
-        for payload in pending {
+        if pending.isEmpty { return }
+
+        for capture in pending {
+            // Prefer live destination (may have updated credentials), fall back to snapshot
+            let destination: Destination
+            if let live = DestinationStore.shared.destinations.first(where: { $0.id == capture.destinationID }) {
+                destination = live
+            } else if case .restNoAuth(let config) = capture.destinationSnapshot.type, config.endpointURL.isEmpty {
+                // Legacy capture with no real destination — try active
+                guard let active = DestinationStore.shared.activeDestination else { continue }
+                destination = active
+            } else {
+                destination = capture.destinationSnapshot
+            }
+
             do {
-                try await send(payload: payload, to: url)
-                pendingStore.remove(idempotencyKey: payload.idempotencyKey)
-                CaptureLog.network.info("Retry succeeded: \(payload.idempotencyKey)")
+                try await DestinationSender.send(payload: capture.payload, destination: destination, tokenManager: tokenManager)
+                pendingStore.remove(idempotencyKey: capture.payload.idempotencyKey)
+                CaptureLog.network.info("Retry succeeded: \(capture.payload.idempotencyKey)")
+            } catch let error as OAuthError where error == .missingCredentials {
+                // Credentials were deleted — abandon this capture to avoid infinite retry
+                pendingStore.remove(idempotencyKey: capture.payload.idempotencyKey)
+                CaptureLog.network.error("Abandoned capture \(capture.payload.idempotencyKey): credentials no longer available")
             } catch {
-                CaptureLog.network.warning("Retry failed for \(payload.idempotencyKey): \(error.localizedDescription)")
+                CaptureLog.network.warning("Retry failed for \(capture.payload.idempotencyKey): \(error.localizedDescription)")
             }
         }
-    }
-
-    private func send(payload: CapturePayload, to url: URL) async throws {
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(payload)
-        request.timeoutInterval = 10
-
-        let (_, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-            throw CaptureError.serverError(statusCode: statusCode)
-        }
-    }
-
-    private func apiEndpointURL() -> URL? {
-        guard let urlString = UserDefaults.standard.string(forKey: "apiEndpoint"),
-              !urlString.isEmpty else {
-            return nil
-        }
-        guard let url = URL(string: urlString) else {
-            CaptureLog.network.error("Invalid API endpoint URL: \(urlString)")
-            return nil
-        }
-        return url
     }
 }
 

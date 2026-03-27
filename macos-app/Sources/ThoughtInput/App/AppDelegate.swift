@@ -2,18 +2,34 @@ import Cocoa
 import SwiftUI
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var statusItem: NSStatusItem!
-    private var capturePanel: CapturePanel!
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    private var statusItem: NSStatusItem?
+    private var capturePanel: CapturePanel?
+    private var settingsWindow: NSWindow?
     private let shortcutManager = GlobalShortcutManager.shared
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        CaptureLog.always("Thought Input starting… (debug=\(CaptureLog.isDebug))")
+        CaptureLog.always("  To enable debug logging: pass --debug or set THOUGHT_INPUT_DEBUG=1")
+        CaptureLog.debug("ui", "applicationDidFinishLaunching started")
+
+        MigrationService.migrateIfNeeded(store: DestinationStore.shared)
+        CaptureLog.debug("ui", "Migration check complete")
+
         setupMenuBar()
+        CaptureLog.debug("ui", "Menu bar setup complete")
+
         setupCapturePanel()
+        CaptureLog.debug("ui", "Capture panel setup complete")
+
         setupGlobalShortcut()
+        CaptureLog.debug("ui", "Global shortcut setup complete")
+
         retryPendingCaptures()
 
         CaptureLog.ui.info("Thought Input launched")
+        CaptureLog.always("Thought Input ready.")
+        CaptureLog.debug("ui", "applicationDidFinishLaunching finished")
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -25,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
-        if let button = statusItem.button {
+        if let button = statusItem?.button {
             if let image = NSImage(systemSymbolName: "brain.head.profile", accessibilityDescription: "Thought Input") {
                 button.image = image
             } else {
@@ -34,52 +50,96 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Capture", action: #selector(showCapture), keyEquivalent: ""))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Settings…", action: #selector(showSettings), keyEquivalent: ","))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit Thought Input", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
-        statusItem.menu = menu
+        let captureItem = NSMenuItem(title: "Capture", action: #selector(showCapture), keyEquivalent: "")
+        captureItem.target = self
+        menu.addItem(captureItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let quitItem = NSMenuItem(title: "Quit Thought Input", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(quitItem)
+
+        statusItem?.menu = menu
     }
 
     // MARK: - Capture Panel
 
     private func setupCapturePanel() {
-        capturePanel = CapturePanel()
+        let panel = CapturePanel()
         let viewController = CaptureViewController { [weak self] in
-            self?.capturePanel.dismissCapture()
+            self?.capturePanel?.dismissCapture()
         }
-        capturePanel.contentViewController = viewController
-        capturePanel.applyVisualStyle()
+        panel.contentViewController = viewController
+        panel.applyVisualStyle()
+        capturePanel = panel
     }
 
     @objc private func toggleCapture() {
-        if capturePanel.isVisible {
-            capturePanel.dismissCapture()
+        CaptureLog.debug("ui", "toggleCapture called, isVisible=\(capturePanel?.isVisible ?? false)")
+        guard let panel = capturePanel else {
+            CaptureLog.debug("ui", "toggleCapture: capturePanel is nil")
+            return
+        }
+        if panel.isVisible {
+            panel.dismissCapture()
         } else {
             showCapture()
         }
     }
 
     @objc private func showCapture() {
-        capturePanel.showCapture()
+        CaptureLog.debug("ui", "showCapture called")
+        capturePanel?.showCapture()
     }
 
     // MARK: - Settings
 
     @objc private func showSettings() {
-        let settingsWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 400, height: 300),
-            styleMask: [.titled, .closable],
-            backing: .buffered,
-            defer: false
-        )
-        settingsWindow.title = "Thought Input Settings"
-        settingsWindow.contentView = NSHostingView(rootView: SettingsView())
-        settingsWindow.center()
-        settingsWindow.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        CaptureLog.debug("ui", "showSettings called")
+
+        // Dismiss capture panel first to avoid responder chain conflicts
+        if capturePanel?.isVisible == true {
+            capturePanel?.dismissCapture()
+        }
+
+        // Reuse existing window if it's still around
+        if let window = settingsWindow {
+            CaptureLog.debug("ui", "Reusing existing settings window")
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate()
+            return
+        }
+
+        // Create settings window directly — the SwiftUI Settings scene + selector approach
+        // is unreliable across macOS versions.
+        CaptureLog.debug("ui", "Creating new settings window")
+        let hostingController = NSHostingController(rootView: SettingsView())
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "Thought Input Settings"
+        window.styleMask = [.titled, .closable]
+        window.setContentSize(NSSize(width: 500, height: 450))
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+
+        settingsWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+        CaptureLog.debug("ui", "Settings window shown")
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if (notification.object as? NSWindow) === settingsWindow {
+            CaptureLog.debug("ui", "Settings window closed")
+            settingsWindow = nil
+        }
     }
 
     // MARK: - Global Shortcut

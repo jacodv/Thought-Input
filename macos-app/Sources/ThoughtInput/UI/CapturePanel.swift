@@ -28,7 +28,9 @@ final class CapturePanel: NSPanel {
         acceptsMouseMovedEvents = true
 
         // Rounded corners with vibrancy (Spotlight-like)
-        vibrancyView.frame = contentView!.bounds
+        if let cv = contentView {
+            vibrancyView.frame = cv.bounds
+        }
         vibrancyView.autoresizingMask = [.width, .height]
         vibrancyView.material = .hudWindow
         vibrancyView.blendingMode = .behindWindow
@@ -47,21 +49,27 @@ final class CapturePanel: NSPanel {
 
     /// Call after contentViewController is set, since that replaces the contentView
     func applyVisualStyle() {
-        vibrancyView.frame = contentView!.bounds
-        contentView?.addSubview(vibrancyView, positioned: .below, relativeTo: nil)
-        contentView?.wantsLayer = true
-        contentView?.layer?.cornerRadius = 12
-        contentView?.layer?.masksToBounds = false
+        guard let cv = contentView else {
+            CaptureLog.debug("ui", "applyVisualStyle: contentView is nil, skipping")
+            return
+        }
+        vibrancyView.frame = cv.bounds
+        cv.addSubview(vibrancyView, positioned: .below, relativeTo: nil)
+        cv.wantsLayer = true
+        cv.layer?.cornerRadius = 12
+        cv.layer?.masksToBounds = false
 
         // Theme-aware border and background
         let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        contentView?.layer?.borderWidth = 1
-        contentView?.layer?.borderColor = isDark
+        cv.layer?.borderWidth = 1
+        cv.layer?.borderColor = isDark
             ? NSColor.white.withAlphaComponent(0.2).cgColor
             : NSColor.black.withAlphaComponent(0.15).cgColor
-        contentView?.layer?.backgroundColor = isDark
+        cv.layer?.backgroundColor = isDark
             ? NSColor.black.withAlphaComponent(0.85).cgColor
             : NSColor.white.withAlphaComponent(0.85).cgColor
+
+        CaptureLog.debug("ui", "applyVisualStyle complete (isDark=\(isDark))")
     }
 
     override var canBecomeKey: Bool { true }
@@ -76,13 +84,17 @@ final class CapturePanel: NSPanel {
     }
 
     func showCapture() {
+        CaptureLog.debug("ui", "showCapture: centering and making key")
         centerOnScreen()
         makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
         CaptureLog.ui.info("Capture panel shown")
+        CaptureLog.debug("ui", "showCapture: panel frame=\(frame), isVisible=\(isVisible)")
     }
 
     func dismissCapture() {
+        CaptureLog.debug("ui", "dismissCapture called")
+        resignKey()
         orderOut(nil)
         CaptureLog.ui.info("Capture panel dismissed")
     }

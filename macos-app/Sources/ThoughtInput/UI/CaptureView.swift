@@ -82,6 +82,7 @@ struct CaptureView: View {
     }
 
     private func submitCapture() {
+        CaptureLog.debug("ui", "submitCapture called, text='\(text.prefix(20))...'")
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
         let method: CapturePayload.CaptureMethod = speechRecognizer.transcript.isEmpty ? .typed : .voice
@@ -105,6 +106,7 @@ struct CaptureView: View {
     }
 
     private func dismiss() {
+        CaptureLog.debug("ui", "CaptureView dismiss called")
         speechRecognizer.stopRecording()
         text = ""
         feedbackIcon = nil
