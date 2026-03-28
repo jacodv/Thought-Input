@@ -13,12 +13,23 @@ concurrency:
 jobs:
   macos-app:
     name: macOS (Build + Test)
-    runs-on: macos-15
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: macos-app
     steps:
       - uses: actions/checkout@v6
+
+      - name: Select latest Xcode
+        run: |
+          # Find the highest Xcode version installed on the runner
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$LATEST_XCODE" ]; then
+            echo "No Xcode found"
+            exit 1
+          fi
+          echo "Selecting: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE/Contents/Developer"
 
       - name: Cache SPM
         uses: actions/cache@v5
