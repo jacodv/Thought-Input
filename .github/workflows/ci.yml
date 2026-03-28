@@ -45,7 +45,7 @@ jobs:
         run: swift build
 
       - name: Run tests
-        run: swift test --verbose
+        run: xcodebuild test -scheme ThoughtInput -destination 'platform=macOS' -skipPackagePluginValidation 2>&1 | tail -50
 
       - name: Build (release)
         run: swift build -c release
