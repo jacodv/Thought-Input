@@ -18,10 +18,11 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -179,21 +180,28 @@ fun DestinationEditorScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            ExposedDropdownMenuBox(
-                expanded = typeMenuExpanded,
-                onExpandedChange = { typeMenuExpanded = !typeMenuExpanded }
-            ) {
+            androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = typeChoice.label,
                     onValueChange = {},
                     readOnly = true,
+                    enabled = false,
                     label = { Text("Type") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeMenuExpanded) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable, true)
+                    trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
-                androidx.compose.material3.ExposedDropdownMenu(
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { typeMenuExpanded = true }
+                )
+                DropdownMenu(
                     expanded = typeMenuExpanded,
                     onDismissRequest = { typeMenuExpanded = false }
                 ) {
