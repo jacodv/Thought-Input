@@ -1,38 +1,37 @@
 package com.thoughtinput.capture.data
 
 import android.os.Build
-import org.json.JSONObject
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@Serializable
 data class CapturePayload(
     val text: String,
     val timestamp: String,
-    val sourcePlatform: String = "android",
-    val clientVersion: String = "0.1.0",
-    val captureMethod: CaptureMethod,
-    val idempotencyKey: String = UUID.randomUUID().toString(),
-    val deviceName: String = Build.MODEL
+    @SerialName("source_platform") val sourcePlatform: String = "android",
+    @SerialName("client_version") val clientVersion: String = "0.1.0",
+    @SerialName("capture_method") val captureMethod: CaptureMethod,
+    @SerialName("idempotency_key") val idempotencyKey: String = UUID.randomUUID().toString(),
+    @SerialName("device_name") val deviceName: String = Build.MODEL
 ) {
+    @Serializable
     enum class CaptureMethod(val value: String) {
-        TYPED("typed"),
-        VOICE("voice")
+        @SerialName("typed") TYPED("typed"),
+        @SerialName("voice") VOICE("voice")
     }
 
-    fun toJson(): String {
-        return JSONObject().apply {
-            put("text", text)
-            put("timestamp", timestamp)
-            put("source_platform", sourcePlatform)
-            put("client_version", clientVersion)
-            put("capture_method", captureMethod.value)
-            put("idempotency_key", idempotencyKey)
-            put("device_name", deviceName)
-        }.toString()
-    }
+    fun toJson(): String = json.encodeToString(serializer(), this)
 
     companion object {
+        val json = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
+
         fun create(
             text: String,
             method: CaptureMethod,
@@ -46,18 +45,7 @@ data class CapturePayload(
             )
         }
 
-        fun fromJson(json: String): CapturePayload {
-            val obj = JSONObject(json)
-            return CapturePayload(
-                text = obj.getString("text"),
-                timestamp = obj.getString("timestamp"),
-                sourcePlatform = obj.getString("source_platform"),
-                clientVersion = obj.getString("client_version"),
-                captureMethod = CaptureMethod.entries.firstOrNull { it.value == obj.getString("capture_method") }
-                    ?: CaptureMethod.TYPED,
-                idempotencyKey = obj.getString("idempotency_key"),
-                deviceName = obj.getString("device_name")
-            )
-        }
+        fun fromJson(jsonString: String): CapturePayload =
+            json.decodeFromString(serializer(), jsonString)
     }
 }

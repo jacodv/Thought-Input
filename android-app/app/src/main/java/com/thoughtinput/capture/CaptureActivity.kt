@@ -1,6 +1,7 @@
 package com.thoughtinput.capture
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.WindowManager
@@ -17,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.thoughtinput.capture.data.CapturePayload
 import com.thoughtinput.capture.data.CaptureRepository
+import com.thoughtinput.capture.data.SubmitResult
 import com.thoughtinput.capture.speech.SpeechRecognizerManager
 import com.thoughtinput.capture.ui.CaptureScreen
 import com.thoughtinput.capture.ui.theme.ThoughtInputTheme
@@ -38,7 +40,6 @@ class CaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Edge-to-edge transparent overlay
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or
@@ -48,9 +49,7 @@ class CaptureActivity : ComponentActivity() {
         repository = CaptureRepository(applicationContext)
         speechManager = SpeechRecognizerManager(this)
 
-        // If launched with voice mode flag (from widget mic button)
         val startWithVoice = intent.getBooleanExtra("start_voice", false)
-
         CaptureLog.ui("CaptureActivity created (voice=$startWithVoice)")
 
         setContent {
@@ -58,6 +57,7 @@ class CaptureActivity : ComponentActivity() {
                 var isSending by remember { mutableStateOf(false) }
                 var showSuccess by remember { mutableStateOf(false) }
                 var errorMessage by remember { mutableStateOf<String?>(null) }
+                var requireSetup by remember { mutableStateOf(false) }
                 val isRecording by speechManager.isRecording.collectAsState()
                 val transcript by speechManager.transcript.collectAsState()
                 val scope = rememberCoroutineScope()
@@ -66,6 +66,7 @@ class CaptureActivity : ComponentActivity() {
                     isSending = isSending,
                     showSuccess = showSuccess,
                     errorMessage = errorMessage,
+                    requireSetup = requireSetup,
                     isRecording = isRecording,
                     speechAvailable = speechManager.isAvailable,
                     speechTranscript = transcript,
@@ -73,42 +74,54 @@ class CaptureActivity : ComponentActivity() {
                         scope.launch {
                             isSending = true
                             errorMessage = null
+                            requireSetup = false
                             val method = if (transcript.isNotEmpty())
                                 CapturePayload.CaptureMethod.VOICE
                             else
                                 CapturePayload.CaptureMethod.TYPED
 
                             speechManager.stopListening()
-                            val success = repository.submit(text, method)
-
-                            if (success) {
-                                showSuccess = true
-                                delay(350)
-                                finish()
-                            } else {
-                                isSending = false
-                                errorMessage = "Saved offline"
-                                delay(1000)
-                                finish()
+                            when (val result = repository.submit(text, method)) {
+                                is SubmitResult.Success -> {
+                                    showSuccess = true
+                                    delay(350)
+                                    finish()
+                                }
+                                is SubmitResult.NoDestination -> {
+                                    isSending = false
+                                    requireSetup = true
+                                    errorMessage = "Set up a destination in Settings"
+                                }
+                                is SubmitResult.QueuedOffline -> {
+                                    isSending = false
+                                    errorMessage = "Saved offline – ${result.reason}"
+                                    delay(1200)
+                                    finish()
+                                }
+                                is SubmitResult.Failed -> {
+                                    isSending = false
+                                    errorMessage = result.reason
+                                    delay(1500)
+                                    finish()
+                                }
                             }
                         }
                     },
                     onToggleVoice = {
-                        if (isRecording) {
-                            speechManager.stopListening()
-                        } else {
-                            requestMicAndListen()
-                        }
+                        if (isRecording) speechManager.stopListening() else requestMicAndListen()
                     },
+                    onOpenSettings = ::openSettings,
                     onDismiss = { finish() }
                 )
             }
         }
 
-        // Auto-start voice if launched from widget mic button
-        if (startWithVoice) {
-            requestMicAndListen()
-        }
+        if (startWithVoice) requestMicAndListen()
+    }
+
+    private fun openSettings() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 
     private fun requestMicAndListen() {

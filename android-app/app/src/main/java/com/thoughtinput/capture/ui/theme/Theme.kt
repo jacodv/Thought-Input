@@ -1,47 +1,55 @@
 package com.thoughtinput.capture.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
 private val LightColorScheme = lightColorScheme(
     primary = ThoughtPrimary,
     onPrimary = ThoughtOnPrimary,
     primaryContainer = ThoughtPrimaryContainer,
+    onPrimaryContainer = ThoughtOnPrimaryContainer,
     secondary = ThoughtSecondary,
+    onSecondary = ThoughtOnSecondary,
     background = ThoughtBackground,
-    surface = ThoughtSurface
+    onBackground = ThoughtOnBackground,
+    surface = ThoughtSurface,
+    onSurface = ThoughtOnSurface,
+    surfaceVariant = ThoughtSurfaceVariant,
+    onSurfaceVariant = ThoughtOnSurfaceVariant,
+    surfaceContainerHigh = ThoughtSurfaceContainerHigh,
+    outline = ThoughtOutline,
+    error = ThoughtError,
+    onError = ThoughtOnError
 )
 
 private val DarkColorScheme = darkColorScheme(
     primary = ThoughtPrimaryDark,
     onPrimary = ThoughtOnPrimaryDark,
     primaryContainer = ThoughtPrimaryContainerDark,
+    onPrimaryContainer = ThoughtOnPrimaryContainerDark,
     secondary = ThoughtSecondaryDark,
+    onSecondary = ThoughtOnSecondaryDark,
     background = ThoughtBackgroundDark,
-    surface = ThoughtSurfaceDark
+    onBackground = ThoughtOnBackgroundDark,
+    surface = ThoughtSurfaceDark,
+    onSurface = ThoughtOnSurfaceDark,
+    surfaceVariant = ThoughtSurfaceVariantDark,
+    onSurfaceVariant = ThoughtOnSurfaceVariantDark,
+    surfaceContainerHigh = ThoughtSurfaceContainerHighDark,
+    outline = ThoughtOutlineDark,
+    error = ThoughtErrorDark,
+    onError = ThoughtOnErrorDark
 )
 
 @Composable
 fun ThoughtInputTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

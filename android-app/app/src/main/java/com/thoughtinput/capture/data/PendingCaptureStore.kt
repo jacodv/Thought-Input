@@ -1,33 +1,40 @@
 package com.thoughtinput.capture.data
 
 import android.content.Context
+import com.thoughtinput.capture.data.destinations.PendingCapture
 import com.thoughtinput.capture.util.CaptureLog
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class PendingCaptureStore(context: Context) {
 
     private val pendingDir = File(context.filesDir, "pending_captures").apply { mkdirs() }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+    }
 
-    fun save(payload: CapturePayload): Boolean {
+    fun save(capture: PendingCapture): Boolean {
         return try {
-            val file = File(pendingDir, "${payload.idempotencyKey}.json")
-            file.writeText(payload.toJson())
-            CaptureLog.store("Saved pending capture: ${payload.idempotencyKey}")
+            val file = File(pendingDir, "${capture.payload.idempotencyKey}.json")
+            file.writeText(json.encodeToString(PendingCapture.serializer(), capture))
+            CaptureLog.store("Saved pending capture: ${capture.payload.idempotencyKey}")
             true
-        } catch (e: java.io.IOException) {
+        } catch (e: Exception) {
             CaptureLog.error("Store", "Failed to save pending: ${e.message}", e)
             false
         }
     }
 
-    fun loadAll(): List<CapturePayload> {
+    fun loadAll(): List<PendingCapture> {
         return try {
             pendingDir.listFiles { file -> file.extension == "json" }
                 ?.mapNotNull { file ->
                     try {
-                        CapturePayload.fromJson(file.readText())
+                        json.decodeFromString(PendingCapture.serializer(), file.readText())
                     } catch (e: Exception) {
-                        CaptureLog.store("Failed to parse ${file.name}: ${e.message}")
+                        CaptureLog.store("Discarding unreadable pending file ${file.name}: ${e.message}")
+                        file.delete()
                         null
                     }
                 } ?: emptyList()
@@ -39,7 +46,7 @@ class PendingCaptureStore(context: Context) {
 
     fun remove(idempotencyKey: String) {
         val file = File(pendingDir, "$idempotencyKey.json")
-        if (!file.delete()) {
+        if (file.exists() && !file.delete()) {
             CaptureLog.error("Store", "Failed to delete pending capture: ${file.name}")
         }
     }

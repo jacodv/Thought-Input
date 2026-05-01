@@ -3,45 +3,53 @@ package com.thoughtinput.capture.data
 import com.thoughtinput.capture.util.CaptureLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
 class ApiClient {
 
     sealed class Result {
-        data object Success : Result()
-        data class Error(val message: String, val statusCode: Int = -1) : Result()
+        data class Success(val statusCode: Int, val body: String) : Result()
+        data class HttpError(val statusCode: Int, val body: String) : Result()
+        data class IoError(val message: String) : Result()
     }
 
-    suspend fun post(payload: CapturePayload, endpointUrl: String): Result = withContext(Dispatchers.IO) {
+    suspend fun post(
+        url: String,
+        headers: Map<String, String>,
+        body: ByteArray,
+        contentType: String = "application/json",
+        timeoutMs: Int = 10_000
+    ): Result = withContext(Dispatchers.IO) {
         try {
-            val url = URL(endpointUrl)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.apply {
+            val connection = (URL(url).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
-                setRequestProperty("Content-Type", "application/json")
-                connectTimeout = 10_000
-                readTimeout = 10_000
+                setRequestProperty("Content-Type", contentType)
+                for ((k, v) in headers) setRequestProperty(k, v)
+                connectTimeout = timeoutMs
+                readTimeout = timeoutMs
                 doOutput = true
             }
 
-            connection.outputStream.use { output ->
-                output.write(payload.toJson().toByteArray(Charsets.UTF_8))
-            }
+            connection.outputStream.use { it.write(body) }
 
             val statusCode = connection.responseCode
+            val responseBody = (if (statusCode in 200..299) connection.inputStream else connection.errorStream)
+                ?.bufferedReader()
+                ?.use { it.readText() }
+                ?: ""
             connection.disconnect()
 
             if (statusCode in 200..299) {
-                CaptureLog.network("Capture submitted: ${payload.idempotencyKey}")
-                Result.Success
+                Result.Success(statusCode, responseBody)
             } else {
-                CaptureLog.network("Server returned $statusCode for ${payload.idempotencyKey}")
-                Result.Error("Server returned $statusCode", statusCode)
+                CaptureLog.network("HTTP $statusCode for $url")
+                Result.HttpError(statusCode, responseBody)
             }
-        } catch (e: java.io.IOException) {
+        } catch (e: IOException) {
             CaptureLog.error("Network", "Network error: ${e.message}", e)
-            Result.Error(e.message ?: "Unknown network error")
+            Result.IoError(e.message ?: "Unknown network error")
         }
     }
 }
