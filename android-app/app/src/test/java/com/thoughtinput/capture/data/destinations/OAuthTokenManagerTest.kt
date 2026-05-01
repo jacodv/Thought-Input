@@ -6,7 +6,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -103,8 +102,11 @@ class OAuthTokenManagerTest {
                 passwordRef = KeychainRef.create()
             )
         )
-        assertThrows(OAuthError.MissingCredentials::class.java) {
-            kotlinx.coroutines.runBlocking { manager.validToken(dest) }
+        try {
+            manager.validToken(dest)
+            org.junit.Assert.fail("Expected OAuthError.MissingCredentials")
+        } catch (_: OAuthError.MissingCredentials) {
+            // expected
         }
     }
 

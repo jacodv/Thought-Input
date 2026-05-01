@@ -44,6 +44,12 @@ android {
             isIncludeAndroidResources = true
             all {
                 it.timeout.set(Duration.ofMinutes(3))
+                it.forkEvery = 1
+                it.testLogging {
+                    events("passed", "failed", "skipped")
+                    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                    showStandardStreams = false
+                }
             }
         }
     }
