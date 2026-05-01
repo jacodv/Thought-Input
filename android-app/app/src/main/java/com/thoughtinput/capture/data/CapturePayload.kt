@@ -16,7 +16,7 @@ data class CapturePayload(
     @SerialName("client_version") val clientVersion: String = "0.1.0",
     @SerialName("capture_method") val captureMethod: CaptureMethod,
     @SerialName("idempotency_key") val idempotencyKey: String = UUID.randomUUID().toString(),
-    @SerialName("device_name") val deviceName: String = Build.MODEL
+    @SerialName("device_name") val deviceName: String = (Build.MODEL ?: "unknown")
 ) {
     @Serializable
     enum class CaptureMethod(val value: String) {
@@ -35,7 +35,7 @@ data class CapturePayload(
         fun create(
             text: String,
             method: CaptureMethod,
-            deviceName: String = Build.MODEL
+            deviceName: String = (Build.MODEL ?: "unknown")
         ): CapturePayload {
             return CapturePayload(
                 text = text,

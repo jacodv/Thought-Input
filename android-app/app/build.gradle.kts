@@ -40,6 +40,9 @@ android {
         unitTests {
             isReturnDefaultValues = true
             isIncludeAndroidResources = true
+            all {
+                it.timeout.set(java.time.Duration.ofMinutes(3))
+            }
         }
     }
 }
