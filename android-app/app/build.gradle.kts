@@ -1,3 +1,5 @@
+import java.time.Duration
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -41,7 +43,7 @@ android {
             isReturnDefaultValues = true
             isIncludeAndroidResources = true
             all {
-                it.timeout.set(java.time.Duration.ofMinutes(3))
+                it.timeout.set(Duration.ofMinutes(3))
             }
         }
     }
