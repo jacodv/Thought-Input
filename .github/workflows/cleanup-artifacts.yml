@@ -1,0 +1,68 @@
+name: Cleanup artifacts
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * *'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: cleanup-artifacts
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    name: Keep latest 2 per name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          KEEP: '2'
+        run: |
+          set -euo pipefail
+
+          tsv=$(mktemp)
+          gh api --paginate "/repos/$GH_REPO/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | [.id, .name, .created_at, .expired] | @tsv' > "$tsv"
+
+          total=$(wc -l < "$tsv" | tr -d ' ')
+          echo "Found $total artifact records"
+
+          to_delete=$(mktemp)
+          # Sort by name asc, created_at desc so newest entries per name come first.
+          # Skip already-expired records. Keep the first $KEEP per name; mark the rest.
+          sort -t"$(printf '\t')" -k2,2 -k3,3r "$tsv" \
+            | awk -F'\t' -v OFS='\t' -v keep="$KEEP" '
+                $4 == "true" { next }
+                prev != $2 { count = 0; prev = $2 }
+                { count++; if (count > keep) print $1, $2, $3 }
+              ' > "$to_delete"
+
+          n=$(wc -l < "$to_delete" | tr -d ' ')
+          echo "Deleting $n artifacts (keeping latest $KEEP per name)"
+
+          if [ "$n" -eq 0 ]; then
+            exit 0
+          fi
+
+          fail=0
+          while IFS=$'\t' read -r id name created; do
+            echo "  - id=$id name=$name created=$created"
+            if ! gh api -X DELETE "/repos/$GH_REPO/actions/artifacts/$id" --silent; then
+              echo "    WARN: failed to delete artifact $id"
+              fail=$((fail + 1))
+            fi
+          done < "$to_delete"
+
+          if [ "$fail" -gt 0 ]; then
+            echo "$fail deletions failed"
+            exit 1
+          fi
