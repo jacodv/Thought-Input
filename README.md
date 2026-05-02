@@ -37,9 +37,14 @@ Download from the [latest release](https://github.com/jacodv/Thought-Input/relea
 
 > The APK is debug-signed (free distribution, no Play Store fees). If a future update fails with "signatures don't match," uninstall the existing app first, then install the new APK.
 
-### 🪟 Windows
+### 🪟 Windows (10 / 11)
 
-_Coming soon._
+1. Download [`ThoughtInput-Windows-Setup.exe`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput-Windows-Setup.exe).
+2. Run the installer. It is per-user (no admin prompt) and installs to `%LocalAppData%\ThoughtInput`.
+3. Tick **Launch when I log in** to auto-start.
+4. Press `Ctrl+Shift+Space` to capture.
+
+> Requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). Most up-to-date Windows machines already have it via Windows Update; if not, the app prompts you with the download link on first launch.
 
 ---
 
@@ -60,6 +65,7 @@ Failed submissions are queued offline and retried automatically on next launch. 
 contracts/api-schema/        # Shared JSON Schema for the capture payload
 macos-app/                   # Native macOS app (Swift 6.2 / SwiftUI / AppKit)
 android-app/                 # Native Android app (Kotlin / Jetpack Compose)
+windows-app/                 # Native Windows app (.NET 10 / WPF)
 docs/prd/                    # Product requirements
 docs/SETUP-GUIDE.md          # Backend setup guide (Supabase, REST, OAuth)
 ```
@@ -84,7 +90,7 @@ Both apps POST the same JSON payload defined in [`contracts/api-schema/capture-p
 |-------|------|-------------|
 | `text` | string | The captured thought (never empty) |
 | `timestamp` | ISO 8601 string | When the capture was initiated on the device |
-| `source_platform` | `"macos"` \| `"android"` | Originating platform |
+| `source_platform` | `"macos"` \| `"android"` \| `"windows"` | Originating platform |
 | `client_version` | semver string | App version (e.g. `"0.1.0"`) |
 | `capture_method` | `"typed"` \| `"voice"` | How the text was entered |
 | `idempotency_key` | UUID string | Unique per capture, use for server-side deduplication |
@@ -148,9 +154,32 @@ cd android-app
 - **UI layer** — `CaptureScreen` / `SettingsScreen` (Jetpack Compose + Material 3)
 - **System integrations** — `CaptureTileService` (Quick Settings tile), `CaptureWidgetProvider` (home screen widget), `SpeechRecognizerManager`
 
+## Windows App
+
+### Requirements
+- Windows 10 or 11 (x64)
+- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+- For development: .NET 10 SDK
+
+### Build & Test
+```bash
+cd windows-app
+dotnet build ThoughtInput.sln -c Release
+dotnet test src/ThoughtInput.Tests/ThoughtInput.Tests.csproj -c Release
+```
+Core library + tests are pure `net10.0` and build cross-platform; the WPF executable targets `net10.0-windows` and only runs on Windows.
+
+### Default Shortcut
+`Ctrl+Shift+Space` — configurable in Settings.
+
+### Architecture
+- **Core layer** (`ThoughtInput.Core`) — `CaptureService`, `DestinationSender`, `OAuthTokenManager`, `DestinationStore` (`%AppData%\ThoughtInput\destinations.json`), `PendingCaptureStore` (`%LocalAppData%\ThoughtInput\pending\`), `SettingsBackup` (Swift-Codable-compatible JSON for cross-platform import/export)
+- **WPF layer** — `CaptureWindow` (frameless, topmost, Win11 acrylic), `SettingsWindow` (destinations / import-export / about), `DestinationEditor`, `GlobalHotkey` (RegisterHotKey P/Invoke), `WindowsCredentialSecretStore` (Windows Credential Manager via P/Invoke), `SingleInstance` (Mutex + named pipe), `AutoLaunch` (HKCU `Run` key)
+- **Distribution** — per-user [Inno Setup](https://jrsoftware.org/) installer; auto-launch on login via `--hidden` flag
+
 ## Offline-First Design
 
-Both apps follow the same pattern:
+All three apps follow the same pattern:
 1. Attempt to POST the capture to all configured destinations
 2. On network failure, persist the payload as a JSON file (macOS) or SharedPreferences entry (Android)
 3. On next app launch, retry all pending captures
