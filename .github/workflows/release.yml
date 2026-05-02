@@ -59,6 +59,16 @@ jobs:
 
           printf 'APPL????' > "$APP/PkgInfo"
 
+      - name: Ad-hoc codesign
+        # Without any signature, Apple Silicon Gatekeeper rejects the app as
+        # "damaged" once the quarantine bit is set by the browser. An ad-hoc
+        # signature is enough to allow right-click → Open after download.
+        # Hardened runtime is intentionally omitted — that path requires a
+        # Developer ID identity and notarization to clear Gatekeeper.
+        run: |
+          codesign --force --deep --sign - ThoughtInput.app
+          codesign --verify --deep --strict --verbose=2 ThoughtInput.app
+
       - name: Install create-dmg
         run: brew install create-dmg
 
