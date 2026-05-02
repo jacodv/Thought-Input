@@ -42,8 +42,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem?.button {
-            if let image = NSImage(systemSymbolName: "brain.head.profile", accessibilityDescription: "Thought Input") {
-                button.image = image
+            if let asset = NSImage(named: "MenuBarIcon") {
+                asset.isTemplate = true
+                button.image = asset
+            } else if let symbol = NSImage(systemSymbolName: "brain.head.profile", accessibilityDescription: "Thought Input") {
+                button.image = symbol
             } else {
                 button.title = "💭"
             }

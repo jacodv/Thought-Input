@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- Background: deep navy from Concept A (matches dark-mode card) -->
+  <rect width="1024" height="1024" fill="#0F1B2D"/>
+
+  <!-- Head profile (facing left): outline only, white on navy.
+       Drawn clockwise from top-back of head. -->
+  <path d="M 720 240
+           Q 540 110 360 230
+           Q 280 290 280 390
+           L 280 420
+           Q 240 430 205 460
+           L 195 490
+           Q 230 510 275 520
+           L 275 555
+           Q 245 575 270 600
+           L 320 660
+           L 380 730
+           L 380 810
+           L 720 810
+           Q 785 600 775 410
+           Q 765 260 720 240 Z"
+        stroke="#FFFFFF" stroke-width="32"
+        stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- Lightbulb glow rays -->
+  <g stroke="#FFC83D" stroke-width="22" stroke-linecap="round">
+    <line x1="500" y1="170" x2="500" y2="210"/>
+    <line x1="370" y1="210" x2="395" y2="240"/>
+    <line x1="630" y1="210" x2="605" y2="240"/>
+    <line x1="320" y1="320" x2="355" y2="320"/>
+    <line x1="680" y1="320" x2="645" y2="320"/>
+  </g>
+
+  <!-- Lightbulb body (warm yellow) -->
+  <path d="M 500 240
+           A 78 78 0 0 1 555 408
+           L 555 432
+           L 445 432
+           L 445 408
+           A 78 78 0 0 1 500 240 Z"
+        fill="#FFC83D" stroke="#1F1F2E" stroke-width="20"
+        stroke-linejoin="round"/>
+
+  <!-- Lightbulb base (screw threads + tip) -->
+  <rect x="450" y="432" width="100" height="22" rx="4" fill="#1F1F2E"/>
+  <rect x="455" y="458" width="90"  height="14" rx="3" fill="#1F1F2E"/>
+  <rect x="465" y="476" width="70"  height="12" rx="3" fill="#1F1F2E"/>
+
+  <!-- Captured-thought text block (cursor + 3 lines) -->
+  <rect x="345" y="555" width="14"  height="74" rx="3" fill="#3B82F6"/>
+  <rect x="375" y="572" width="180" height="14" rx="4" fill="#FFFFFF"/>
+  <rect x="375" y="598" width="140" height="14" rx="4" fill="#FFFFFF"/>
+  <rect x="375" y="624" width="160" height="14" rx="4" fill="#FFFFFF"/>
+</svg>

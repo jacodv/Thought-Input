@@ -1,12 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quick Settings tile icon: silhouette of head + lightbulb.
+  Tinted by the system via colorControlNormal so the drawable color is white
+  and the system handles light/dark adaptation.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024"
     android:tint="?android:attr/colorControlNormal">
-    <!-- Simple pencil/edit icon for capture -->
+
+    <!-- Head profile (outline) -->
     <path
-        android:fillColor="@android:color/white"
-        android:pathData="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" />
+        android:pathData="M 720 240 Q 540 110 360 230 Q 280 290 280 390 L 280 420 Q 240 430 205 460 L 195 490 Q 230 510 275 520 L 275 555 Q 245 575 270 600 L 320 660 L 380 730 L 380 810 L 720 810 Q 785 600 775 410 Q 765 260 720 240 Z"
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="44"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+
+    <!-- Lightbulb glow rays -->
+    <path android:pathData="M 500 160 L 500 210" android:strokeColor="@android:color/white" android:strokeWidth="36" android:strokeLineCap="round" />
+    <path android:pathData="M 365 205 L 395 240" android:strokeColor="@android:color/white" android:strokeWidth="36" android:strokeLineCap="round" />
+    <path android:pathData="M 635 205 L 605 240" android:strokeColor="@android:color/white" android:strokeWidth="36" android:strokeLineCap="round" />
+    <path android:pathData="M 310 320 L 355 320" android:strokeColor="@android:color/white" android:strokeWidth="36" android:strokeLineCap="round" />
+    <path android:pathData="M 690 320 L 645 320" android:strokeColor="@android:color/white" android:strokeWidth="36" android:strokeLineCap="round" />
+
+    <!-- Lightbulb body (filled silhouette) -->
+    <path
+        android:pathData="M 500 240 A 78 78 0 0 1 555 408 L 555 432 L 445 432 L 445 408 A 78 78 0 0 1 500 240 Z"
+        android:fillColor="@android:color/white" />
+
+    <!-- Lightbulb base -->
+    <path android:pathData="M 450 436 L 550 436 L 550 456 L 450 456 Z" android:fillColor="@android:color/white" />
+    <path android:pathData="M 458 462 L 542 462 L 542 476 L 458 476 Z" android:fillColor="@android:color/white" />
+    <path android:pathData="M 468 482 L 532 482 L 532 494 L 468 494 Z" android:fillColor="@android:color/white" />
+
 </vector>

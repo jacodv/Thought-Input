@@ -1,11 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive launcher foreground: Concept A in full color.
+  Background layer (deep navy) is set separately via @color/ic_launcher_background.
+  Filename kept as ic_brain.xml so existing references don't have to change, but the
+  artwork is now the full head + lightbulb + captured-thought lines mark.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- Simplified brain icon -->
-    <path
-        android:fillColor="#FFAAAAAA"
-        android:pathData="M12,2C9.5,2 7.4,3.6 6.7,5.8C4.6,6.5 3,8.6 3,11c0,2.8 2,5.1 4.6,5.7C8.4,18.6 10,20 12,20s3.6,-1.4 4.4,-3.3C19,16.1 21,13.8 21,11c0,-2.4 -1.6,-4.5 -3.7,-5.2C16.6,3.6 14.5,2 12,2zM12,4c1.7,0 3.1,1 3.7,2.4C14.5,6.1 13.3,6 12,6s-2.5,0.1 -3.7,0.4C8.9,5 10.3,4 12,4zM12,18c-1.1,0 -2,-0.6 -2.6,-1.5C10.2,16.8 11.1,17 12,17s1.8,-0.2 2.6,-0.5C14,17.4 13.1,18 12,18z" />
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <!-- Scale design slightly so it sits inside the 66/108 adaptive-icon safe zone -->
+    <group
+        android:pivotX="512"
+        android:pivotY="512"
+        android:scaleX="0.88"
+        android:scaleY="0.88">
+
+        <!-- Head profile (white outline) -->
+        <path
+            android:pathData="M 720 240 Q 540 110 360 230 Q 280 290 280 390 L 280 420 Q 240 430 205 460 L 195 490 Q 230 510 275 520 L 275 555 Q 245 575 270 600 L 320 660 L 380 730 L 380 810 L 720 810 Q 785 600 775 410 Q 765 260 720 240 Z"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="32"
+            android:strokeLineJoin="round"
+            android:strokeLineCap="round" />
+
+        <!-- Lightbulb glow rays -->
+        <path android:pathData="M 500 170 L 500 210" android:strokeColor="#FFC83D" android:strokeWidth="22" android:strokeLineCap="round" />
+        <path android:pathData="M 370 210 L 395 240" android:strokeColor="#FFC83D" android:strokeWidth="22" android:strokeLineCap="round" />
+        <path android:pathData="M 630 210 L 605 240" android:strokeColor="#FFC83D" android:strokeWidth="22" android:strokeLineCap="round" />
+        <path android:pathData="M 320 320 L 355 320" android:strokeColor="#FFC83D" android:strokeWidth="22" android:strokeLineCap="round" />
+        <path android:pathData="M 680 320 L 645 320" android:strokeColor="#FFC83D" android:strokeWidth="22" android:strokeLineCap="round" />
+
+        <!-- Lightbulb body -->
+        <path
+            android:pathData="M 500 240 A 78 78 0 0 1 555 408 L 555 432 L 445 432 L 445 408 A 78 78 0 0 1 500 240 Z"
+            android:fillColor="#FFC83D"
+            android:strokeColor="#1F1F2E"
+            android:strokeWidth="20"
+            android:strokeLineJoin="round" />
+
+        <!-- Lightbulb base (three stacked plates) -->
+        <path android:pathData="M 450 432 L 550 432 L 550 454 L 450 454 Z" android:fillColor="#1F1F2E" />
+        <path android:pathData="M 455 458 L 545 458 L 545 472 L 455 472 Z" android:fillColor="#1F1F2E" />
+        <path android:pathData="M 465 476 L 535 476 L 535 488 L 465 488 Z" android:fillColor="#1F1F2E" />
+
+        <!-- Captured-thought cursor -->
+        <path android:pathData="M 345 555 L 359 555 L 359 629 L 345 629 Z" android:fillColor="#3B82F6" />
+
+        <!-- Captured-thought text lines -->
+        <path android:pathData="M 375 572 L 555 572 L 555 586 L 375 586 Z" android:fillColor="#FFFFFF" />
+        <path android:pathData="M 375 598 L 515 598 L 515 612 L 375 612 Z" android:fillColor="#FFFFFF" />
+        <path android:pathData="M 375 624 L 535 624 L 535 638 L 375 638 Z" android:fillColor="#FFFFFF" />
+
+    </group>
 </vector>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- Single-color silhouette: head + lightbulb only.
+       Designed for tinting (Android tile, macOS menu bar template).
+       All paths use currentColor so callers can recolor via fill/tint. -->
+
+  <!-- Head profile (facing left), outline. -->
+  <path d="M 720 240
+           Q 540 110 360 230
+           Q 280 290 280 390
+           L 280 420
+           Q 240 430 205 460
+           L 195 490
+           Q 230 510 275 520
+           L 275 555
+           Q 245 575 270 600
+           L 320 660
+           L 380 730
+           L 380 810
+           L 720 810
+           Q 785 600 775 410
+           Q 765 260 720 240 Z"
+        stroke="currentColor" stroke-width="40"
+        stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- Lightbulb glow rays -->
+  <g stroke="currentColor" stroke-width="32" stroke-linecap="round">
+    <line x1="500" y1="160" x2="500" y2="210"/>
+    <line x1="365" y1="205" x2="395" y2="240"/>
+    <line x1="635" y1="205" x2="605" y2="240"/>
+    <line x1="310" y1="320" x2="355" y2="320"/>
+    <line x1="690" y1="320" x2="645" y2="320"/>
+  </g>
+
+  <!-- Lightbulb body (filled silhouette) -->
+  <path d="M 500 240
+           A 78 78 0 0 1 555 408
+           L 555 432
+           L 445 432
+           L 445 408
+           A 78 78 0 0 1 500 240 Z"
+        fill="currentColor"/>
+
+  <!-- Lightbulb base -->
+  <rect x="450" y="436" width="100" height="20" rx="4" fill="currentColor"/>
+  <rect x="458" y="462" width="84"  height="14" rx="3" fill="currentColor"/>
+  <rect x="468" y="482" width="64"  height="12" rx="3" fill="currentColor"/>
+</svg>

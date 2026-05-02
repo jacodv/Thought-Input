@@ -8,12 +8,12 @@
     android:paddingStart="16dp"
     android:paddingEnd="8dp">
 
-    <!-- Brain icon — tapping opens capture -->
+    <!-- Logo silhouette — tapping opens capture -->
     <ImageView
         android:id="@+id/widget_icon"
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:src="@drawable/ic_brain"
+        android:src="@drawable/ic_logo_mark"
         android:contentDescription="@string/app_name" />
 
     <!-- Hint text — tapping opens capture -->
