@@ -8,9 +8,15 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.Timeout
+import java.util.concurrent.TimeUnit
 
 class OAuthTokenManagerTest {
+
+    @get:Rule
+    val globalTimeout: Timeout = Timeout(30, TimeUnit.SECONDS)
 
     private lateinit var server: MockWebServer
     private lateinit var keystore: InMemoryKeystore
