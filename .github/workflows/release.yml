@@ -152,32 +152,29 @@ jobs:
             echo "title=Build ${RUN_NUMBER} (${DATE} — ${SHORT_SHA})"
           } >> "$GITHUB_OUTPUT"
 
-          # Multi-line release body via heredoc
-          {
-            echo 'body<<RELEASE_BODY_EOF'
-            cat <<EOF
-## Downloads
+          # Multi-line release body — written to a file and consumed via body_path.
+          # All lines stay indented under the run block scalar; YAML strips the
+          # common leading indent before the shell sees the heredoc.
+          cat > "$GITHUB_WORKSPACE/release-body.md" <<EOF
+          ## Downloads
 
-Pick the file for your operating system:
+          Pick the file for your operating system:
 
-| Platform | Download | First-time install notes |
-|---|---|---|
-| 🍎 **macOS** 15+ | [\`ThoughtInput-macOS.dmg\`](${BASE_URL}/ThoughtInput-macOS.dmg) | Open the .dmg → drag \`ThoughtInput.app\` onto the Applications folder. First launch: right-click → **Open** (or run \`xattr -dr com.apple.quarantine /Applications/ThoughtInput.app\`). |
-| 🤖 **Android** 10+ | [\`ThoughtInput-Android.apk\`](${BASE_URL}/ThoughtInput-Android.apk) | Tap the file on your device. Allow **Install unknown apps** for your browser if prompted. |
-| 🪟 **Windows** | _Coming soon_ | — |
+          | Platform | Download | First-time install notes |
+          |---|---|---|
+          | 🍎 **macOS** 15+ | [\`ThoughtInput-macOS.dmg\`](${BASE_URL}/ThoughtInput-macOS.dmg) | Open the .dmg → drag \`ThoughtInput.app\` onto the Applications folder. First launch: right-click → **Open** (or run \`xattr -dr com.apple.quarantine /Applications/ThoughtInput.app\`). |
+          | 🤖 **Android** 10+ | [\`ThoughtInput-Android.apk\`](${BASE_URL}/ThoughtInput-Android.apk) | Tap the file on your device. Allow **Install unknown apps** for your browser if prompted. |
+          | 🪟 **Windows** | _Coming soon_ | — |
 
-> Both apps need a destination configured before they'll deliver captures (Supabase, REST, etc.). See the [Backend Setup Guide](https://github.com/${REPO}/blob/main/docs/SETUP-GUIDE.md). For Supabase you can hit **Initialize Database** in the destination editor to bootstrap the schema in one click.
-
-EOF
-            echo 'RELEASE_BODY_EOF'
-          } >> "$GITHUB_OUTPUT"
+          > Both apps need a destination configured before they'll deliver captures (Supabase, REST, etc.). See the [Backend Setup Guide](https://github.com/${REPO}/blob/main/docs/SETUP-GUIDE.md). For Supabase you can hit **Initialize Database** in the destination editor to bootstrap the schema in one click.
+          EOF
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: ${{ steps.meta.outputs.title }}
-          body: ${{ steps.meta.outputs.body }}
+          body_path: release-body.md
           append_body: true
           generate_release_notes: true
           prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease == true }}
