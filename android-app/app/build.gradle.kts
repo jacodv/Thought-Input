@@ -43,8 +43,7 @@ android {
             isReturnDefaultValues = true
             isIncludeAndroidResources = true
             all {
-                it.timeout.set(Duration.ofMinutes(3))
-                it.forkEvery = 1
+                it.timeout.set(Duration.ofSeconds(90))
                 it.testLogging {
                     events("passed", "failed", "skipped")
                     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL

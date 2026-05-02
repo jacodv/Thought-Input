@@ -113,7 +113,7 @@ class OAuthTokenManager(
         val accessToken = json.optString("access_token", "").ifBlank {
             throw OAuthError.InvalidTokenResponse
         }
-        val expiresIn = if (json.has("expires_in")) json.optLong("expires_in", -1L).takeIf { it > 0 } else null
+        val expiresIn = if (json.has("expires_in")) json.optLong("expires_in") else null
         val refreshToken = if (json.has("refresh_token")) json.optString("refresh_token", "").ifBlank { null } else null
         return OAuthToken(
             accessToken = accessToken,

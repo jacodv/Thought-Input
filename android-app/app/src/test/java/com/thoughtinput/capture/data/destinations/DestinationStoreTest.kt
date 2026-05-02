@@ -8,12 +8,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.rules.Timeout
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 class DestinationStoreTest {
 
     @get:Rule
     val tempFolder = TemporaryFolder()
+
+    @get:Rule
+    val globalTimeout: Timeout = Timeout(30, TimeUnit.SECONDS)
 
     private fun newStore(): Pair<DestinationStore, InMemoryKeystore> {
         val file = File(tempFolder.newFolder(), "destinations.json")
