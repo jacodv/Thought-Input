@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  macos:
+    name: Build macOS .app.zip
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: macos-app
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Select latest Xcode
+        run: |
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$LATEST_XCODE" ]; then
+            echo "No Xcode found"; exit 1
+          fi
+          sudo xcode-select -s "$LATEST_XCODE/Contents/Developer"
+
+      - name: Build (release)
+        run: swift build -c release
+
+      - name: Package .app bundle
+        run: |
+          APP="ThoughtInput.app/Contents"
+          mkdir -p "$APP/MacOS" "$APP/Resources"
+
+          cp .build/release/ThoughtInput "$APP/MacOS/ThoughtInput"
+          cp Sources/ThoughtInput/Resources/Info.plist "$APP/Info.plist"
+
+          xcrun actool Sources/ThoughtInput/Resources/Assets.xcassets \
+            --compile "$APP/Resources" \
+            --platform macosx \
+            --minimum-deployment-target 15.0 \
+            --app-icon AppIcon \
+            --output-partial-info-plist /dev/null
+
+          if [ -d .build/release/ThoughtInput_ThoughtInput.bundle ]; then
+            cp -R .build/release/ThoughtInput_ThoughtInput.bundle "$APP/Resources/"
+          fi
+
+          printf 'APPL????' > "$APP/PkgInfo"
+
+          ditto -c -k --keepParent ThoughtInput.app ThoughtInput.app.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-macos
+          path: macos-app/ThoughtInput.app.zip
+          retention-days: 7
+
+  android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Stage with stable filename
+        run: |
+          mkdir -p ../staging
+          cp app/build/outputs/apk/debug/app-debug.apk ../staging/ThoughtInput.apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-android
+          path: staging/ThoughtInput.apk
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    needs: [macos, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: release-macos
+          path: dist/
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: release-android
+          path: dist/
+
+      - name: Compute release metadata
+        id: meta
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          SHORT_SHA=$(git rev-parse --short=7 HEAD)
+          DATE=$(date -u +'%Y-%m-%d')
+          {
+            echo "tag=v${RUN_NUMBER}"
+            echo "title=Build ${RUN_NUMBER} (${DATE} — ${SHORT_SHA})"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.title }}
+          generate_release_notes: true
+          prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease == true }}
+          files: |
+            dist/ThoughtInput.app.zip
+            dist/ThoughtInput.apk
+          fail_on_unmatched_files: true

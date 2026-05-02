@@ -15,6 +15,28 @@ Ultra-fast thought capture from anywhere. Summon a tiny input surface, type or d
 
 **No backend included** — both apps POST captured thoughts to your own endpoint(s). See the [Backend Setup Guide](docs/SETUP-GUIDE.md) for Supabase, REST, and OAuth configuration.
 
+## Install
+
+### macOS
+
+1. Download the latest [`ThoughtInput.app.zip`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput.app.zip).
+2. Unzip and drag `ThoughtInput.app` into `/Applications`.
+3. **First launch only** — macOS will say "Apple cannot check it for malicious software." Either right-click the app and choose **Open**, or run:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/ThoughtInput.app
+   ```
+4. Grant Accessibility (for the global `Cmd+Shift+Space` shortcut) and Microphone + Speech Recognition when prompted.
+
+### Android
+
+1. Download the latest [`ThoughtInput.apk`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput.apk).
+2. Tap the file on your device. If prompted, allow **Install unknown apps** for your browser/file manager.
+3. Grant Microphone permission when prompted.
+
+> The APK is debug-signed (free distribution, no Play Store fees). If a future update fails with "signatures don't match," uninstall the existing app first, then install the new APK.
+
+After installing, open the app, add a destination (Settings → Add Destination), and tap **Test Connection**. For Supabase, **Initialize Database** sets up the schema in one click.
+
 ## How It Works
 
 1. **Trigger** — Global hotkey (macOS `Cmd+Shift+Space`) or Quick Settings tile / home screen widget (Android)
