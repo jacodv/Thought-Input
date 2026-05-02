@@ -83,9 +83,9 @@ class OAuthTokenManagerTest {
         manager.validToken(dest)
 
         // First request: password grant
-        server.takeRequest()
+        server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         // Second request: refresh grant
-        val refreshReq = server.takeRequest()
+        val refreshReq = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         val body = refreshReq.body.readUtf8()
         assertTrue("expected refresh_token grant, got: $body", body.contains("grant_type=refresh_token"))
         assertTrue(body.contains("refresh_token=rt-1"))

@@ -57,7 +57,7 @@ class DestinationSenderTest {
 
         sender.send(samplePayload(), dest)
 
-        val request = server.takeRequest()
+        val request = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         assertEquals("POST", request.method)
         assertEquals("/rest/v1/captures", request.path)
         assertEquals("application/json", request.getHeader("Content-Type"))
@@ -81,7 +81,7 @@ class DestinationSenderTest {
 
         sender.send(samplePayload(), dest)
 
-        val request = server.takeRequest()
+        val request = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         assertEquals("POST", request.method)
         assertEquals("/hook", request.path)
         assertEquals("application/json", request.getHeader("Content-Type"))
@@ -107,7 +107,7 @@ class DestinationSenderTest {
 
         sender.send(samplePayload(), dest)
 
-        val request = server.takeRequest()
+        val request = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         assertEquals("secret-key", request.getHeader("X-API-Key"))
     }
 
@@ -132,7 +132,7 @@ class DestinationSenderTest {
 
         sender.send(samplePayload(), dest)
 
-        val tokenReq = server.takeRequest()
+        val tokenReq = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         assertEquals("/token", tokenReq.path)
         assertEquals("application/x-www-form-urlencoded", tokenReq.getHeader("Content-Type"))
         val body = tokenReq.body.readUtf8()
@@ -140,7 +140,7 @@ class DestinationSenderTest {
         assertTrue(body.contains("client_id=client-id"))
         assertTrue(body.contains("client_secret=client-secret"))
 
-        val captureReq = server.takeRequest()
+        val captureReq = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         assertEquals("/data", captureReq.path)
         assertEquals("Bearer abc", captureReq.getHeader("Authorization"))
     }
@@ -173,11 +173,11 @@ class DestinationSenderTest {
         sender.send(samplePayload(), dest)
 
         // Assert sequence
-        val r1 = server.takeRequest(); assertEquals("/token", r1.path)
-        val r2 = server.takeRequest(); assertEquals("/data", r2.path)
+        val r1 = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!; assertEquals("/token", r1.path)
+        val r2 = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!; assertEquals("/data", r2.path)
         assertEquals("Bearer old", r2.getHeader("Authorization"))
-        val r3 = server.takeRequest(); assertEquals("/token", r3.path)
-        val r4 = server.takeRequest(); assertEquals("/data", r4.path)
+        val r3 = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!; assertEquals("/token", r3.path)
+        val r4 = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!; assertEquals("/data", r4.path)
         assertEquals("Bearer fresh", r4.getHeader("Authorization"))
 
         // Verify the retry token request was a fresh password grant (not refresh, since no refresh_token in first response)
@@ -212,7 +212,7 @@ class DestinationSenderTest {
 
         sender.testConnection(dest)
 
-        val request = server.takeRequest()
+        val request = server.takeRequest(5, java.util.concurrent.TimeUnit.SECONDS)!!
         val body = JSONObject(request.body.readUtf8())
         assertEquals("Connection test", body.getString("text"))
         assertEquals("typed", body.getString("capture_method"))
