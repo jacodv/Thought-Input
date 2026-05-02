@@ -59,12 +59,12 @@ jobs:
 
           printf 'APPL????' > "$APP/PkgInfo"
 
-          ditto -c -k --keepParent ThoughtInput.app ThoughtInput.app.zip
+          ditto -c -k --keepParent ThoughtInput.app ThoughtInput-macOS.zip
 
       - uses: actions/upload-artifact@v7
         with:
           name: release-macos
-          path: macos-app/ThoughtInput.app.zip
+          path: macos-app/ThoughtInput-macOS.zip
           retention-days: 7
 
   android:
@@ -89,12 +89,12 @@ jobs:
       - name: Stage with stable filename
         run: |
           mkdir -p ../staging
-          cp app/build/outputs/apk/debug/app-debug.apk ../staging/ThoughtInput.apk
+          cp app/build/outputs/apk/debug/app-debug.apk ../staging/ThoughtInput-Android.apk
 
       - uses: actions/upload-artifact@v7
         with:
           name: release-android
-          path: staging/ThoughtInput.apk
+          path: staging/ThoughtInput-Android.apk
           retention-days: 7
 
   publish:
@@ -120,12 +120,36 @@ jobs:
         id: meta
         env:
           RUN_NUMBER: ${{ github.run_number }}
+          REPO: ${{ github.repository }}
         run: |
           SHORT_SHA=$(git rev-parse --short=7 HEAD)
           DATE=$(date -u +'%Y-%m-%d')
+          TAG="v${RUN_NUMBER}"
+          BASE_URL="https://github.com/${REPO}/releases/download/${TAG}"
+
           {
-            echo "tag=v${RUN_NUMBER}"
+            echo "tag=${TAG}"
             echo "title=Build ${RUN_NUMBER} (${DATE} — ${SHORT_SHA})"
+          } >> "$GITHUB_OUTPUT"
+
+          # Multi-line release body via heredoc
+          {
+            echo 'body<<RELEASE_BODY_EOF'
+            cat <<EOF
+## Downloads
+
+Pick the file for your operating system:
+
+| Platform | Download | First-time install notes |
+|---|---|---|
+| 🍎 **macOS** 15+ | [\`ThoughtInput-macOS.zip\`](${BASE_URL}/ThoughtInput-macOS.zip) | Unzip → drag \`ThoughtInput.app\` into \`/Applications\`. First launch: right-click → **Open** (or run \`xattr -dr com.apple.quarantine /Applications/ThoughtInput.app\`). |
+| 🤖 **Android** 10+ | [\`ThoughtInput-Android.apk\`](${BASE_URL}/ThoughtInput-Android.apk) | Tap the file on your device. Allow **Install unknown apps** for your browser if prompted. |
+| 🪟 **Windows** | _Coming soon_ | — |
+
+> Both apps need a destination configured before they'll deliver captures (Supabase, REST, etc.). See the [Backend Setup Guide](https://github.com/${REPO}/blob/main/docs/SETUP-GUIDE.md). For Supabase you can hit **Initialize Database** in the destination editor to bootstrap the schema in one click.
+
+EOF
+            echo 'RELEASE_BODY_EOF'
           } >> "$GITHUB_OUTPUT"
 
       - name: Create release
@@ -133,9 +157,11 @@ jobs:
         with:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: ${{ steps.meta.outputs.title }}
+          body: ${{ steps.meta.outputs.body }}
+          append_body: true
           generate_release_notes: true
           prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease == true }}
           files: |
-            dist/ThoughtInput.app.zip
-            dist/ThoughtInput.apk
+            dist/ThoughtInput-macOS.zip
+            dist/ThoughtInput-Android.apk
           fail_on_unmatched_files: true

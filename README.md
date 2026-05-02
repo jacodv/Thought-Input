@@ -17,9 +17,11 @@ Ultra-fast thought capture from anywhere. Summon a tiny input surface, type or d
 
 ## Install
 
-### macOS
+Download from the [latest release](https://github.com/jacodv/Thought-Input/releases/latest) and follow the steps for your OS.
 
-1. Download the latest [`ThoughtInput.app.zip`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput.app.zip).
+### 🍎 macOS (15.0+)
+
+1. Download [`ThoughtInput-macOS.zip`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput-macOS.zip).
 2. Unzip and drag `ThoughtInput.app` into `/Applications`.
 3. **First launch only** — macOS will say "Apple cannot check it for malicious software." Either right-click the app and choose **Open**, or run:
    ```bash
@@ -27,13 +29,19 @@ Ultra-fast thought capture from anywhere. Summon a tiny input surface, type or d
    ```
 4. Grant Accessibility (for the global `Cmd+Shift+Space` shortcut) and Microphone + Speech Recognition when prompted.
 
-### Android
+### 🤖 Android (10+)
 
-1. Download the latest [`ThoughtInput.apk`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput.apk).
+1. Download [`ThoughtInput-Android.apk`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput-Android.apk).
 2. Tap the file on your device. If prompted, allow **Install unknown apps** for your browser/file manager.
 3. Grant Microphone permission when prompted.
 
 > The APK is debug-signed (free distribution, no Play Store fees). If a future update fails with "signatures don't match," uninstall the existing app first, then install the new APK.
+
+### 🪟 Windows
+
+_Coming soon._
+
+---
 
 After installing, open the app, add a destination (Settings → Add Destination), and tap **Test Connection**. For Supabase, **Initialize Database** sets up the schema in one click.
 
