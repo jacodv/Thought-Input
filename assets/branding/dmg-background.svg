@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="380" viewBox="0 0 540 380">
+  <!-- DMG installer background for ThoughtInput.
+       Window size 540x380. The .app icon is placed by create-dmg at (140, 190),
+       the Applications symlink at (400, 190). The arrow + hint live in between. -->
+
+  <defs>
+    <radialGradient id="bulbGlow" cx="50%" cy="32%" r="60%">
+      <stop offset="0%"   stop-color="#FFC83D" stop-opacity="0.10"/>
+      <stop offset="60%"  stop-color="#0F1B2D" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0F1B2D" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Navy backdrop -->
+  <rect width="540" height="380" fill="#0F1B2D"/>
+  <rect width="540" height="380" fill="url(#bulbGlow)"/>
+
+  <!-- Brand mark (silhouette from logo-mark.svg), scaled to ~32px tall, centered at top -->
+  <g transform="translate(187, 22) scale(0.045)">
+    <!-- Head profile -->
+    <path d="M 720 240
+             Q 540 110 360 230
+             Q 280 290 280 390
+             L 280 420
+             Q 240 430 205 460
+             L 195 490
+             Q 230 510 275 520
+             L 275 555
+             Q 245 575 270 600
+             L 320 660
+             L 380 730
+             L 380 810
+             L 720 810
+             Q 785 600 775 410
+             Q 765 260 720 240 Z"
+          fill="none" stroke="#FFFFFF" stroke-width="40"
+          stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- Lightbulb glow rays -->
+    <g stroke="#FFC83D" stroke-width="32" stroke-linecap="round">
+      <line x1="500" y1="160" x2="500" y2="210"/>
+      <line x1="365" y1="205" x2="395" y2="240"/>
+      <line x1="635" y1="205" x2="605" y2="240"/>
+      <line x1="310" y1="320" x2="355" y2="320"/>
+      <line x1="690" y1="320" x2="645" y2="320"/>
+    </g>
+
+    <!-- Lightbulb body -->
+    <path d="M 500 240
+             A 78 78 0 0 1 555 408
+             L 555 432
+             L 445 432
+             L 445 408
+             A 78 78 0 0 1 500 240 Z"
+          fill="#FFC83D"/>
+  </g>
+
+  <!-- Wordmark next to the mark -->
+  <text x="234" y="55" fill="#FFFFFF"
+        font-family="-apple-system, system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="20" font-weight="600" letter-spacing="0.06em">THOUGHT INPUT</text>
+
+  <!-- Hairline divider in brand yellow -->
+  <line x1="190" y1="78" x2="354" y2="78" stroke="#FFC83D" stroke-width="1" opacity="0.35"/>
+
+  <!-- Arrow between icons (.app at x=140, Applications at x=400) -->
+  <g opacity="0.92">
+    <line x1="222" y1="200" x2="318" y2="200"
+          stroke="#FFC83D" stroke-width="3"
+          stroke-linecap="round" fill="none"/>
+    <polygon points="318,200 304,190 304,210" fill="#FFC83D"/>
+  </g>
+
+  <!-- Drag hint -->
+  <text x="270" y="320" text-anchor="middle" fill="#A6B4CC"
+        font-family="-apple-system, system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="13" font-weight="500" letter-spacing="0.02em">Drag the app onto the Applications folder</text>
+</svg>

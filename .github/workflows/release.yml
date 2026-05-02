@@ -59,12 +59,32 @@ jobs:
 
           printf 'APPL????' > "$APP/PkgInfo"
 
-          ditto -c -k --keepParent ThoughtInput.app ThoughtInput-macOS.zip
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build .dmg with branded background
+        working-directory: ${{ github.workspace }}
+        run: |
+          STAGE="$(mktemp -d)"
+          cp -R macos-app/ThoughtInput.app "$STAGE/"
+
+          create-dmg \
+            --volname "Thought Input" \
+            --background "assets/branding/dmg-background.png" \
+            --window-pos 200 120 \
+            --window-size 540 380 \
+            --icon-size 100 \
+            --icon "ThoughtInput.app" 140 200 \
+            --hide-extension "ThoughtInput.app" \
+            --app-drop-link 400 200 \
+            --no-internet-enable \
+            "ThoughtInput-macOS.dmg" \
+            "$STAGE"
 
       - uses: actions/upload-artifact@v7
         with:
           name: release-macos
-          path: macos-app/ThoughtInput-macOS.zip
+          path: ThoughtInput-macOS.dmg
           retention-days: 7
 
   android:
@@ -142,7 +162,7 @@ Pick the file for your operating system:
 
 | Platform | Download | First-time install notes |
 |---|---|---|
-| 🍎 **macOS** 15+ | [\`ThoughtInput-macOS.zip\`](${BASE_URL}/ThoughtInput-macOS.zip) | Unzip → drag \`ThoughtInput.app\` into \`/Applications\`. First launch: right-click → **Open** (or run \`xattr -dr com.apple.quarantine /Applications/ThoughtInput.app\`). |
+| 🍎 **macOS** 15+ | [\`ThoughtInput-macOS.dmg\`](${BASE_URL}/ThoughtInput-macOS.dmg) | Open the .dmg → drag \`ThoughtInput.app\` onto the Applications folder. First launch: right-click → **Open** (or run \`xattr -dr com.apple.quarantine /Applications/ThoughtInput.app\`). |
 | 🤖 **Android** 10+ | [\`ThoughtInput-Android.apk\`](${BASE_URL}/ThoughtInput-Android.apk) | Tap the file on your device. Allow **Install unknown apps** for your browser if prompted. |
 | 🪟 **Windows** | _Coming soon_ | — |
 
@@ -162,6 +182,6 @@ EOF
           generate_release_notes: true
           prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease == true }}
           files: |
-            dist/ThoughtInput-macOS.zip
+            dist/ThoughtInput-macOS.dmg
             dist/ThoughtInput-Android.apk
           fail_on_unmatched_files: true

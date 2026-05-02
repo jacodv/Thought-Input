@@ -21,8 +21,8 @@ Download from the [latest release](https://github.com/jacodv/Thought-Input/relea
 
 ### 🍎 macOS (15.0+)
 
-1. Download [`ThoughtInput-macOS.zip`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput-macOS.zip).
-2. Unzip and drag `ThoughtInput.app` into `/Applications`.
+1. Download [`ThoughtInput-macOS.dmg`](https://github.com/jacodv/Thought-Input/releases/latest/download/ThoughtInput-macOS.dmg).
+2. Open the `.dmg` and drag `ThoughtInput.app` onto the Applications folder.
 3. **First launch only** — macOS will say "Apple cannot check it for malicious software." Either right-click the app and choose **Open**, or run:
    ```bash
    xattr -dr com.apple.quarantine /Applications/ThoughtInput.app
