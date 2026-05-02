@@ -127,9 +127,76 @@ jobs:
           path: staging/ThoughtInput-Android.apk
           retention-days: 7
 
+  windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows-app
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore ThoughtInput.sln
+
+      - name: Run unit tests
+        run: dotnet test src/ThoughtInput.Tests/ThoughtInput.Tests.csproj -c Release --no-restore
+
+      - name: Generate AppIcon.ico
+        shell: pwsh
+        run: |
+          $png = "src/ThoughtInput/Resources/AppIcon.png"
+          $ico = "src/ThoughtInput/Resources/AppIcon.ico"
+          magick "$png" -define icon:auto-resize=256,128,64,48,32,16 "$ico"
+          if (-not (Test-Path $ico)) { throw "Failed to produce $ico" }
+
+      - name: Publish (framework-dependent, win-x64)
+        run: >
+          dotnet publish src/ThoughtInput/ThoughtInput.csproj
+          -c Release
+          -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=false
+          -o publish
+
+      - name: Build installer with Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          $publishDir = (Resolve-Path 'publish').Path
+          $icon = (Resolve-Path 'src/ThoughtInput/Resources/AppIcon.ico').Path
+          $outputDir = Join-Path (Resolve-Path '.').Path 'installer\Output'
+          & $iscc `
+            "/DAppVersion=0.1.0" `
+            "/DPublishDir=$publishDir" `
+            "/DIconFile=$icon" `
+            "/DOutputDir=$outputDir" `
+            "installer\ThoughtInput.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC.exe failed with exit code $LASTEXITCODE" }
+
+      - name: Stage with stable filename
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "../staging" | Out-Null
+          Copy-Item "installer/Output/ThoughtInput-Windows-Setup.exe" "../staging/ThoughtInput-Windows-Setup.exe"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-windows
+          path: staging/ThoughtInput-Windows-Setup.exe
+          retention-days: 7
+
   publish:
     name: Publish GitHub Release
-    needs: [macos, android]
+    needs: [macos, android, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -144,6 +211,11 @@ jobs:
       - uses: actions/download-artifact@v6
         with:
           name: release-android
+          path: dist/
+
+      - uses: actions/download-artifact@v6
+        with:
+          name: release-windows
           path: dist/
 
       - name: Compute release metadata
@@ -174,7 +246,7 @@ jobs:
           |---|---|---|
           | 🍎 **macOS** 15+ | [\`ThoughtInput-macOS.dmg\`](${BASE_URL}/ThoughtInput-macOS.dmg) | Open the .dmg → drag \`ThoughtInput.app\` onto the Applications folder. First launch: right-click → **Open** (or run \`xattr -dr com.apple.quarantine /Applications/ThoughtInput.app\`). |
           | 🤖 **Android** 10+ | [\`ThoughtInput-Android.apk\`](${BASE_URL}/ThoughtInput-Android.apk) | Tap the file on your device. Allow **Install unknown apps** for your browser if prompted. |
-          | 🪟 **Windows** | _Coming soon_ | — |
+          | 🪟 **Windows** 10/11 | [\`ThoughtInput-Windows-Setup.exe\`](${BASE_URL}/ThoughtInput-Windows-Setup.exe) | Run the installer (per-user, no admin prompt). Tick **Launch when I log in** for auto-start. Press \`Ctrl+Shift+Space\` to capture. Requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0). |
 
           > Both apps need a destination configured before they'll deliver captures (Supabase, REST, etc.). See the [Backend Setup Guide](https://github.com/${REPO}/blob/main/docs/SETUP-GUIDE.md). For Supabase you can hit **Initialize Database** in the destination editor to bootstrap the schema in one click.
           EOF
@@ -191,4 +263,5 @@ jobs:
           files: |
             dist/ThoughtInput-macOS.dmg
             dist/ThoughtInput-Android.apk
+            dist/ThoughtInput-Windows-Setup.exe
           fail_on_unmatched_files: true

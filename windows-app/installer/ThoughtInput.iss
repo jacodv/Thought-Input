@@ -40,10 +40,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExe}
-SetupIconFile=assets\AppIcon.ico
-WizardImageFile=assets\WizardLarge.bmp
-WizardSmallImageFile=assets\WizardSmall.bmp
-WizardImageStretch=no
+#ifdef IconFile
+  SetupIconFile={#IconFile}
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
