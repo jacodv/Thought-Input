@@ -17,7 +17,7 @@
     },
     "source_platform": {
       "type": "string",
-      "enum": ["macos", "android"],
+      "enum": ["macos", "android", "windows"],
       "description": "Platform that originated the capture."
     },
     "client_version": {

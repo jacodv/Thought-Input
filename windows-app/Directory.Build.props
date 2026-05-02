@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Version>0.1.0</Version>
+    <Authors>Jaco De Villiers</Authors>
+    <Product>Thought Input</Product>
+    <Copyright>Copyright (c) Jaco De Villiers</Copyright>
+  </PropertyGroup>
+</Project>
