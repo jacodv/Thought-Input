@@ -1,0 +1,53 @@
+<Window x:Class="ThoughtInput.UI.CaptureWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thought Input"
+        Width="640" SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        WindowStartupLocation="Manual"
+        FocusManager.FocusedElement="{Binding ElementName=Input}">
+
+    <Border Background="{StaticResource SurfaceBrush}"
+            CornerRadius="14"
+            Padding="20,16"
+            BorderBrush="#33FFFFFF"
+            BorderThickness="1"
+            SnapsToDevicePixels="True">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="Input"
+                     Grid.Column="0"
+                     Style="{StaticResource CaptureTextBox}"
+                     KeyDown="OnInputKeyDown"
+                     ToolTip="Type a thought and press Enter. Esc to dismiss." />
+
+            <Grid Grid.Column="1" Width="32" Height="32" Margin="12,0,0,0">
+                <TextBlock x:Name="OkBadge"
+                           Text="✓"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource StatusOkBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed" />
+                <TextBlock x:Name="WarnBadge"
+                           Text="!"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource StatusErrorBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

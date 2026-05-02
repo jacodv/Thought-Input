@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ThoughtInput</RootNamespace>
+    <AssemblyName>ThoughtInput</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PlatformTarget>x64</PlatformTarget>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Lets non-Windows machines (eg. macOS during dev) at least restore packages
+         and run analyzers; the actual build still requires Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ThoughtInput.Core\ThoughtInput.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\AppIcon.png" />
+  </ItemGroup>
+
+  <!-- AppIcon.ico is generated from AppIcon.png by ImageMagick when available
+       (preinstalled on windows-latest CI runners). When magick isn't on PATH,
+       the build continues without an exe icon — the WPF window still displays
+       AppIcon.png via the embedded Resource. -->
+  <Target Name="GenerateAppIcon" BeforeTargets="BeforeCompile"
+          Inputs="Resources\AppIcon.png"
+          Outputs="Resources\AppIcon.ico"
+          Condition="!Exists('Resources\AppIcon.ico')">
+    <Exec Command="magick &quot;$(MSBuildProjectDirectory)\Resources\AppIcon.png&quot; -define icon:auto-resize=256,128,64,48,32,16 &quot;$(MSBuildProjectDirectory)\Resources\AppIcon.ico&quot;"
+          ContinueOnError="true" IgnoreExitCode="true" />
+    <Warning Text="AppIcon.ico could not be generated (ImageMagick not found). The exe will use the default icon."
+             Condition="!Exists('Resources\AppIcon.ico')" />
+  </Target>
+
+  <PropertyGroup Condition="Exists('Resources\AppIcon.ico')">
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+</Project>

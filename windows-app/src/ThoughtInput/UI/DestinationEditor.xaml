@@ -1,0 +1,79 @@
+<Window x:Class="ThoughtInput.UI.DestinationEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Destination"
+        Width="540" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource SurfaceBrush}"
+        Foreground="{StaticResource TextPrimaryBrush}"
+        ResizeMode="NoResize"
+        FontFamily="Segoe UI Variable, Segoe UI">
+    <StackPanel Margin="20">
+        <TextBlock Text="Name" Margin="0,0,0,4" />
+        <TextBox x:Name="NameBox" Padding="6" />
+
+        <TextBlock Text="Type" Margin="0,12,0,4" />
+        <ComboBox x:Name="TypeCombo" Padding="6" SelectionChanged="OnTypeChanged">
+            <ComboBoxItem Tag="supabase">Supabase</ComboBoxItem>
+            <ComboBoxItem Tag="restNoAuth">REST (no auth)</ComboBoxItem>
+            <ComboBoxItem Tag="restApiKey">REST (API key)</ComboBoxItem>
+            <ComboBoxItem Tag="restOAuthPassword">REST (OAuth password)</ComboBoxItem>
+            <ComboBoxItem Tag="restOAuthClientCredentials">REST (OAuth client credentials)</ComboBoxItem>
+        </ComboBox>
+
+        <!-- Supabase -->
+        <StackPanel x:Name="SupabasePanel" Visibility="Collapsed">
+            <TextBlock Text="Project URL" Margin="0,12,0,4" />
+            <TextBox x:Name="SupabaseUrl" Padding="6" />
+            <TextBlock Text="Table name" Margin="0,8,0,4" />
+            <TextBox x:Name="SupabaseTable" Padding="6" />
+            <TextBlock Text="API key (service role or anon)" Margin="0,8,0,4" />
+            <PasswordBox x:Name="SupabaseKey" Padding="6" />
+        </StackPanel>
+
+        <!-- REST no auth -->
+        <StackPanel x:Name="RestNoAuthPanel" Visibility="Collapsed">
+            <TextBlock Text="Endpoint URL" Margin="0,12,0,4" />
+            <TextBox x:Name="RestNoAuthUrl" Padding="6" />
+        </StackPanel>
+
+        <!-- REST API key -->
+        <StackPanel x:Name="RestApiKeyPanel" Visibility="Collapsed">
+            <TextBlock Text="Endpoint URL" Margin="0,12,0,4" />
+            <TextBox x:Name="RestApiKeyUrl" Padding="6" />
+            <TextBlock Text="Header name" Margin="0,8,0,4" />
+            <TextBox x:Name="RestApiKeyHeader" Padding="6" Text="X-API-Key" />
+            <TextBlock Text="API key" Margin="0,8,0,4" />
+            <PasswordBox x:Name="RestApiKeyValue" Padding="6" />
+        </StackPanel>
+
+        <!-- REST OAuth password -->
+        <StackPanel x:Name="OAuthPasswordPanel" Visibility="Collapsed">
+            <TextBlock Text="Endpoint URL" Margin="0,12,0,4" />
+            <TextBox x:Name="OAuthPwdEndpoint" Padding="6" />
+            <TextBlock Text="Token URL" Margin="0,8,0,4" />
+            <TextBox x:Name="OAuthPwdTokenUrl" Padding="6" />
+            <TextBlock Text="Username" Margin="0,8,0,4" />
+            <TextBox x:Name="OAuthPwdUsername" Padding="6" />
+            <TextBlock Text="Password" Margin="0,8,0,4" />
+            <PasswordBox x:Name="OAuthPwdPassword" Padding="6" />
+        </StackPanel>
+
+        <!-- REST OAuth client credentials -->
+        <StackPanel x:Name="OAuthClientPanel" Visibility="Collapsed">
+            <TextBlock Text="Endpoint URL" Margin="0,12,0,4" />
+            <TextBox x:Name="OAuthClientEndpoint" Padding="6" />
+            <TextBlock Text="Token URL" Margin="0,8,0,4" />
+            <TextBox x:Name="OAuthClientTokenUrl" Padding="6" />
+            <TextBlock Text="Client ID" Margin="0,8,0,4" />
+            <TextBox x:Name="OAuthClientId" Padding="6" />
+            <TextBlock Text="Client secret" Margin="0,8,0,4" />
+            <PasswordBox x:Name="OAuthClientSecret" Padding="6" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Cancel" Style="{StaticResource GhostButton}" Click="OnCancelClick" Margin="0,0,8,0" />
+            <Button Content="Save" Style="{StaticResource PrimaryButton}" Click="OnSaveClick" />
+        </StackPanel>
+    </StackPanel>
+</Window>
