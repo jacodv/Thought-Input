@@ -67,7 +67,11 @@ private sealed class TestState {
     data object Idle : TestState()
     data object Running : TestState()
     data object Success : TestState()
+    data object TableMissing : TestState()
     data class Failure(val message: String) : TestState()
+
+    val isConnected: Boolean
+        get() = this is Success || this is TableMissing
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,6 +115,7 @@ fun DestinationEditorScreen(
 
     var testState by remember { mutableStateOf<TestState>(TestState.Idle) }
     var saving by remember { mutableStateOf(false) }
+    var showingInitDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(existing?.id) {
@@ -283,12 +288,24 @@ fun DestinationEditorScreen(
                         leadingIcon = { Icon(Icons.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary) },
                         colors = AssistChipDefaults.assistChipColors()
                     )
+                    is TestState.TableMissing -> AssistChip(
+                        onClick = {},
+                        label = { Text("Connected — table missing") },
+                        leadingIcon = { Icon(Icons.Filled.Error, null, tint = MaterialTheme.colorScheme.tertiary) }
+                    )
                     is TestState.Failure -> AssistChip(
                         onClick = {},
                         label = { Text(s.message, maxLines = 1) },
                         leadingIcon = { Icon(Icons.Filled.Error, null, tint = MaterialTheme.colorScheme.error) }
                     )
                 }
+            }
+
+            if (typeChoice == TypeChoice.SUPABASE && testState.isConnected) {
+                OutlinedButton(
+                    onClick = { showingInitDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Initialize Database…") }
             }
 
             Row(
@@ -318,6 +335,30 @@ fun DestinationEditorScreen(
                 ) { Text(if (existing == null) "Add" else "Save") }
             }
         }
+    }
+
+    if (showingInitDialog) {
+        InitializeDatabaseDialog(
+            projectURL = supabaseProjectURL,
+            tableName = supabaseTableName,
+            onDismiss = { showingInitDialog = false },
+            onCompleted = {
+                showingInitDialog = false
+                testState = TestState.Running
+                scope.launch {
+                    val result = runTest(
+                        existing, typeChoice, name, keystore, sender,
+                        supabaseProjectURL, supabaseTableName, supabaseAPIKey,
+                        restNoAuthURL,
+                        restApiKeyURL, restApiKeyHeader, restApiKeyValue,
+                        oauthPwEndpoint, oauthPwTokenURL, oauthPwUsername, oauthPwPassword,
+                        oauthClientEndpoint, oauthClientTokenURL, oauthClientID, oauthClientSecret,
+                        tokenManager
+                    )
+                    testState = result
+                }
+            }
+        )
     }
 }
 
@@ -586,8 +627,10 @@ private suspend fun runTest(
     val newRefs = testType.keychainRefs.filter { it.account !in existingRefs }
 
     return try {
-        sender.testConnection(testDestination)
-        TestState.Success
+        when (sender.testConnection(testDestination)) {
+            DestinationSender.TestResult.Ok -> TestState.Success
+            DestinationSender.TestResult.TableMissing -> TestState.TableMissing
+        }
     } catch (e: Exception) {
         TestState.Failure(e.message?.take(60) ?: "Failed")
     } finally {

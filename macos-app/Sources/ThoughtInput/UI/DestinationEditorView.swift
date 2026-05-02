@@ -48,8 +48,18 @@ struct DestinationEditorView: View {
 
     enum TestResult {
         case success
+        case tableMissing
         case failure(String)
+
+        var isConnected: Bool {
+            switch self {
+            case .success, .tableMissing: return true
+            case .failure: return false
+            }
+        }
     }
+
+    @State private var showingInitSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -87,6 +97,10 @@ struct DestinationEditorView: View {
                 }
                 .disabled(isTesting || !isValid)
 
+                if selectedType == .supabase, testResult?.isConnected == true {
+                    Button("Initialize Database…") { showingInitSheet = true }
+                }
+
                 if isTesting {
                     ProgressView()
                         .controlSize(.small)
@@ -95,8 +109,12 @@ struct DestinationEditorView: View {
                 if let testResult {
                     switch testResult {
                     case .success:
-                        Label("Connection successful", systemImage: "checkmark.circle.fill")
+                        Label("Connected. Table exists.", systemImage: "checkmark.circle.fill")
                             .foregroundColor(.green)
+                            .font(.caption)
+                    case .tableMissing:
+                        Label("Connected. Table missing — run Initialize.", systemImage: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
                             .font(.caption)
                     case .failure(let message):
                         Label(message, systemImage: "xmark.circle.fill")
@@ -119,6 +137,17 @@ struct DestinationEditorView: View {
                 .disabled(!isValid || isSaving)
             }
             .padding()
+            .sheet(isPresented: $showingInitSheet) {
+                InitializeDatabaseSheet(
+                    projectURL: supabaseProjectURL,
+                    tableName: supabaseTableName,
+                    onClose: { showingInitSheet = false },
+                    onCompleted: {
+                        showingInitSheet = false
+                        Task { await testConnection() }
+                    }
+                )
+            }
         }
         .frame(width: 480, height: 400)
         .onAppear { loadExisting() }
@@ -412,8 +441,11 @@ struct DestinationEditorView: View {
         }
 
         do {
-            try await DestinationSender.testConnection(destination: destination, tokenManager: OAuthTokenManager.shared)
-            testResult = .success
+            let result = try await DestinationSender.testConnection(destination: destination, tokenManager: OAuthTokenManager.shared)
+            switch result {
+            case .ok: testResult = .success
+            case .tableMissing: testResult = .tableMissing
+            }
         } catch {
             testResult = .failure(error.localizedDescription)
         }

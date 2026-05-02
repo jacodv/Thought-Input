@@ -26,9 +26,42 @@ class DestinationSender(
         }
     }
 
-    suspend fun testConnection(destination: Destination) {
-        val test = CapturePayload.create("Connection test", CapturePayload.CaptureMethod.TYPED)
-        send(test, destination)
+    sealed class TestResult {
+        data object Ok : TestResult()
+        data object TableMissing : TestResult()
+    }
+
+    suspend fun testConnection(destination: Destination): TestResult {
+        return when (val type = destination.type) {
+            is DestinationType.Supabase -> testSupabase(type)
+            else -> {
+                val test = CapturePayload.create("Connection test", CapturePayload.CaptureMethod.TYPED)
+                send(test, destination)
+                TestResult.Ok
+            }
+        }
+    }
+
+    private suspend fun testSupabase(config: DestinationType.Supabase): TestResult {
+        val base = config.projectURL.trim().trimEnd('/')
+        val url = "$base/rest/v1/${config.tableName}?limit=0"
+        val apiKey = keystore.loadString(config.apiKeyRef).orEmpty()
+        val headers = mapOf(
+            "apikey" to apiKey,
+            "Authorization" to "Bearer $apiKey"
+        )
+        return when (val r = apiClient.get(url, headers)) {
+            is ApiClient.Result.Success -> TestResult.Ok
+            is ApiClient.Result.HttpError -> {
+                val body = r.body
+                if (r.statusCode in 400..499 && (body.contains("PGRST205") || body.lowercase().contains("could not find"))) {
+                    TestResult.TableMissing
+                } else {
+                    throw CaptureHttpException(r.statusCode, body)
+                }
+            }
+            is ApiClient.Result.IoError -> throw CaptureHttpException(-1, r.message)
+        }
     }
 
     private suspend fun sendSupabase(data: ByteArray, config: DestinationType.Supabase) {

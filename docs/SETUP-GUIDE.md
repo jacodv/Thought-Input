@@ -36,7 +36,14 @@ Every capture sends a POST request with this JSON body:
 
 ### 1. Create the Table
 
-Open the **SQL Editor** in your Supabase dashboard and run:
+The app can do this for you. After you've added a Supabase destination and tapped **Test Connection**, an **Initialize Database** button appears whenever the URL + API key are valid. Tap it and choose either:
+
+- **Run via API** — paste a Supabase Personal Access Token from <https://supabase.com/dashboard/account/tokens>. The PAT is used once and discarded — never stored.
+- **Run it yourself** — copy the canonical SQL and open the project's SQL Editor in your browser. No PAT required.
+
+Either path also handles drop-and-recreate when the table already exists.
+
+If you'd rather set it up manually, open the **SQL Editor** in your Supabase dashboard and run:
 
 ```sql
 CREATE TABLE IF NOT EXISTS captures (

@@ -26,9 +26,49 @@ enum DestinationSender {
 
     // MARK: - Test Connection
 
-    static func testConnection(destination: Destination, tokenManager: OAuthTokenManager) async throws {
-        let testPayload = CapturePayload.create(text: "Connection test", method: .typed)
-        try await send(payload: testPayload, destination: destination, tokenManager: tokenManager)
+    enum TestResult: Equatable {
+        case ok
+        case tableMissing
+    }
+
+    static func testConnection(destination: Destination, tokenManager: OAuthTokenManager) async throws -> TestResult {
+        switch destination.type {
+        case .supabase(let config):
+            return try await testSupabase(config: config)
+        default:
+            let testPayload = CapturePayload.create(text: "Connection test", method: .typed)
+            try await send(payload: testPayload, destination: destination, tokenManager: tokenManager)
+            return .ok
+        }
+    }
+
+    private static func testSupabase(config: SupabaseConfig) async throws -> TestResult {
+        let base = config.projectURL.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let urlString = "\(base)/rest/v1/\(config.tableName)?limit=0"
+
+        guard let url = URL(string: urlString) else {
+            throw CaptureError.serverError(statusCode: -1)
+        }
+
+        let apiKey = try KeychainService.loadString(ref: config.apiKeyRef) ?? ""
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue(apiKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 10
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+        if (200...299).contains(status) { return .ok }
+
+        if (400...499).contains(status) {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            if body.contains("PGRST205") || body.lowercased().contains("could not find") {
+                return .tableMissing
+            }
+        }
+        throw CaptureError.serverError(statusCode: status)
     }
 
     // MARK: - Supabase

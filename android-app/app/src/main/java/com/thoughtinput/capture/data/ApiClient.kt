@@ -52,4 +52,36 @@ class ApiClient {
             Result.IoError(e.message ?: "Unknown network error")
         }
     }
+
+    suspend fun get(
+        url: String,
+        headers: Map<String, String>,
+        timeoutMs: Int = 10_000
+    ): Result = withContext(Dispatchers.IO) {
+        try {
+            val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                for ((k, v) in headers) setRequestProperty(k, v)
+                connectTimeout = timeoutMs
+                readTimeout = timeoutMs
+            }
+
+            val statusCode = connection.responseCode
+            val responseBody = (if (statusCode in 200..299) connection.inputStream else connection.errorStream)
+                ?.bufferedReader()
+                ?.use { it.readText() }
+                ?: ""
+            connection.disconnect()
+
+            if (statusCode in 200..299) {
+                Result.Success(statusCode, responseBody)
+            } else {
+                CaptureLog.network("HTTP $statusCode for GET $url")
+                Result.HttpError(statusCode, responseBody)
+            }
+        } catch (e: IOException) {
+            CaptureLog.error("Network", "Network error: ${e.message}", e)
+            Result.IoError(e.message ?: "Unknown network error")
+        }
+    }
 }
