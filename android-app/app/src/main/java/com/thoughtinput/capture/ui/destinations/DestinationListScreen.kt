@@ -13,10 +13,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -36,13 +38,21 @@ import com.thoughtinput.capture.data.destinations.DestinationStore
 fun DestinationListScreen(
     store: DestinationStore,
     onAdd: () -> Unit,
-    onEdit: (Destination) -> Unit
+    onEdit: (Destination) -> Unit,
+    onSettings: () -> Unit = {}
 ) {
     val destinations by store.destinations.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Destinations") })
+            TopAppBar(
+                title = { Text("Destinations") },
+                actions = {
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd) {
